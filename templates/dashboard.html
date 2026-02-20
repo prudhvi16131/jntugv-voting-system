@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <h2 class="text-3xl font-bold text-center mb-10">Live Election Dashboard</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% if tally %}
+            {% for candidate, votes in tally.items() %}
+            <div class="bg-white rounded-xl shadow-md border p-6 text-center">
+                <h3 class="text-xl font-bold text-slate-800">{{ candidate }}</h3>
+                <div class="mt-4">
+                    <span class="text-4xl font-extrabold text-indigo-600">{{ votes }}</span>
+                    <span class="text-slate-500 font-medium ml-1">Votes</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-span-2 bg-slate-50 border rounded-xl p-8 text-center text-slate-500">
+                No votes have been cast yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
