@@ -11,23 +11,23 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# Initial election settings
+# Initial election settings. Start and end times can be updated via Dashboard
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
-    "end": datetime(2026, 2, 21, 15, 0), # Can be adjusted via Dashboard
+    "end": datetime(2026, 2, 21, 15, 0),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# JNTU-GV Student Range
+# JNTU-GV Authorized Voter Range: 24V11A0501 to 24V11A0580
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
-    """Saves the chain to a JSON file to prevent data loss on Render restarts."""
+    """Writes the chain to a JSON file to prevent data loss on Render restarts."""
     chain_data = [block.__dict__ for block in voting_blockchain.chain]
     with open(STORAGE_FILE, 'w') as f:
         json.dump(chain_data, f)
@@ -39,7 +39,7 @@ def index():
     now = datetime.now(IST).replace(tzinfo=None) 
     end_ms = int(voting_config["end"].timestamp() * 1000)
     
-    # Status determination based on time
+    # Check election window status
     if now < voting_config["start"]:
         status = "waiting"
     elif now > voting_config["end"]:
@@ -57,15 +57,16 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP NULLIFIER: Ensures privacy while preventing double-voting
+    # ZKP NULLIFIER: Cryptographic proof of ID without storing sensitive data
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
-    # Integrity check: Has this nullifier already voted?
+    # Integrity check: Prevent double-voting
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
+    # Digital receipt for audit verification
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -132,11 +133,19 @@ def update_candidates():
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Updates election timing. Useful to close early if voting is done."""
+    """Restores manual control over the Start and End time dropdowns."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
     voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
+    return redirect('/admin-results/JNTUGV_SECRET')
+
+@app.route('/stop-early', methods=['POST'])
+def stop_early():
+    """Instant stop clock option."""
+    IST = pytz.timezone('Asia/Kolkata')
+    now = datetime.now(IST).replace(tzinfo=None)
+    voting_config["end"] = now
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/reset-election', methods=['POST'])
