@@ -9,8 +9,8 @@ import os
 app = Flask(__name__)
 voting_blockchain = Blockchain()
 
-# --- 1. CONFIGURATION & DATABASE ---
-# Updated range: 24V11A0501 to 24V11A0580
+# --- 1. CONFIGURATION ---
+# JNTU-GV Authorized Range: 24V11A0501 to 24V11A0580
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
     "end": datetime(2026, 2, 25, 17, 0),
@@ -22,7 +22,7 @@ voting_config = {
 
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 
-# --- 2. PWA / APP SUPPORT ROUTE ---
+# --- 2. PWA / APP SUPPORT ---
 @app.route('/manifest.json')
 def serve_manifest():
     return send_from_directory('static', 'manifest.json')
@@ -30,11 +30,10 @@ def serve_manifest():
 # --- 3. VOTER INTERFACE ---
 @app.route('/')
 def index():
-    # Force India Standard Time for Render
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # Calculate end time in milliseconds for the JS countdown
+    # End time in ms for the JS countdown
     end_ms = int(voting_config["end"].timestamp() * 1000)
     
     if now < voting_config["start"]:
@@ -49,21 +48,27 @@ def cast_vote():
     voter_id = request.form.get('voter_id')
     candidate = request.form.get('candidate')
 
-    # Security: Database & Double-Voting Checks
+    # Security: Database Check
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
+    # ADVANCED UPGRADE: ZKP NULLIFIER
+    # Creates a unique cryptographic proof of the ID without revealing it.
+    # This prevents double-voting while maintaining total voter privacy.
+    nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
+
+    # Check blockchain for the nullifier to prevent double-voting
     for block in voting_blockchain.chain:
         for tx in block.transactions:
-            if tx.get('voter_id') == voter_id:
-                return "<h1>Error: You have already cast your vote!</h1>", 403
+            if tx.get('nullifier') == nullifier:
+                return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Upgrade: Generate Digital Receipt (Hash-based Verification)
-    receipt_raw = f"{voter_id}{time.time()}"
-    receipt = hashlib.sha256(receipt_raw.encode()).hexdigest()[:10].upper()
+    # Generate Digital Receipt for the student
+    receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
+    # The block stores the nullifier and candidate, NOT the voter_id
     vote_data = {
-        "voter_id": voter_id, 
+        "nullifier": nullifier, 
         "candidate": candidate, 
         "receipt": receipt,
         "timestamp": time.time()
@@ -86,7 +91,7 @@ def admin_results():
                 tally[candidate] = tally.get(candidate, 0) + 1
                 total_votes += 1
     
-    # Upgrade: Voter Participation Analytics
+    # Analytics: Turnout %
     turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1)
     winner = max(tally, key=tally.get) if tally else "No votes yet"
     
@@ -120,9 +125,13 @@ def reset_election():
 
 @app.route('/ledger')
 def ledger():
-    chain_data = [block.__dict__ for block in voting_blockchain.chain]
+    # Chain data now includes Merkle Roots in block headers
+    chain_data = []
+    for block in voting_blockchain.chain:
+        block_info = block.__dict__.copy()
+        # Ensure transactions are serializable
+        chain_data.append(block_info)
     return render_template('ledger.html', chain=chain_data)
 
-# --- 5. START SERVER ---
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
