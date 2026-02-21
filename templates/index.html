@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Secure Voting</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0062ff">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/927/927295.png">
+
     <style>
         :root { 
             --primary: #0062ff; 
@@ -82,7 +90,6 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 98, 255, 0.3);
         }
-        .btn-vote:active { transform: translateY(0); }
 
         .footer { 
             margin-top: 2rem; 
@@ -90,7 +97,6 @@
             color: #a0aec0; 
             border-top: 1px solid #edf2f7; 
             padding-top: 1.2rem; 
-            line-height: 1.4;
         }
         .highlight { color: #4a5568; font-weight: bold; }
     </style>
