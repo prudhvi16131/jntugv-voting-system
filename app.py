@@ -134,4 +134,32 @@ def admin_results():
     return render_template('results.html', tally=tally, winner=winner)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000)# Make these variables global so they can be edited
+voting_config = {
+    "start": datetime(2026, 2, 21, 9, 0),
+    "end": datetime(2026, 2, 25, 17, 0)
+}
+
+@app.route('/admin-results/JNTUGV_SECRET')
+def admin_results():
+    tally = {}
+    for block in voting_blockchain.chain[1:]:
+        for tx in block.transactions:
+            candidate = tx.get('candidate')
+            if candidate:
+                tally[candidate] = tally.get(candidate, 0) + 1
+    
+    winner = max(tally, key=tally.get) if tally else "No votes yet"
+    # Pass the timing to the template
+    return render_template('results.html', tally=tally, winner=winner, config=voting_config)
+
+@app.route('/update-time', methods=['POST'])
+def update_time():
+    new_start = request.form.get('start_time')
+    new_end = request.form.get('end_time')
+    
+    # Convert string from form back to Python datetime objects
+    voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
+    voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
+    
+    return redirect('/admin-results/JNTUGV_SECRET')

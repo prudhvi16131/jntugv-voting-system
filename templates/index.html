@@ -30,3 +30,11 @@
     </div>
 </div>
 {% endblock %}
+@app.route('/')
+def index():
+    now = datetime.now()
+    if now < voting_config["start"]:
+        return f"<h1>Voting starts at {voting_config['start']}</h1>"
+    if now > voting_config["end"]:
+        return "<h1>Voting is now closed!</h1>"
+    return render_template('index.html')

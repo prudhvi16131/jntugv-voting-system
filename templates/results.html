@@ -32,3 +32,14 @@
     </div>
 </body>
 </html>
+<hr>
+<h3>Edit Election Timing</h3>
+<form action="/update-time" method="post">
+    <label>Start Time:</label>
+    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
+    <br><br>
+    <label>End Time:</label>
+    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
+    <br><br>
+    <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px;">Update Election Window</button>
+</form>
