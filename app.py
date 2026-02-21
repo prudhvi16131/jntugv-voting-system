@@ -51,7 +51,7 @@ def ledger():
         }for block in voting_blockchain.chain
     ]
     return render_template('ledger.html', chain=chain_data)
-    @app.route('/admin-results/JNTUGV_SECRET')
+@app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     # This counts the votes from the blockchain ledger
     tally = {}
@@ -62,7 +62,6 @@ def admin_results():
             
     # This finds which candidate has the most votes
     winner = max(tally, key=tally.get) if tally else "No votes cast yet"
-    
     return render_template('results.html', tally=tally, winner=winner)
 
 if __name__ == '__main__':
