@@ -3,36 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote Confirmed | JNTU-GV</title>
+    <title>Vote Confirmed | JNTU-GV Secure Voting</title>
     <style>
+        :root { 
+            --primary: #0062ff; 
+            --success: #10b981; 
+            --bg: #f0f4f8; 
+        }
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: #2d3748;
         }
         .card { 
-            background: white; padding: 3rem; border-radius: 20px; 
-            box-shadow: 0 20px 25px rgba(0,0,0,0.2); 
-            text-align: center; max-width: 400px; width: 90%; 
+            background: white; 
+            padding: 3rem; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); 
+            width: 90%; 
+            max-width: 420px; 
+            text-align: center;
         }
-        .check-icon { font-size: 4rem; color: #10b981; margin-bottom: 1rem; }
-        h2 { color: #1a202c; margin-bottom: 10px; }
-        p { color: #718096; line-height: 1.6; margin-bottom: 2rem; }
+        .check-icon { 
+            font-size: 4.5rem; 
+            color: var(--success); 
+            margin-bottom: 1.5rem; 
+            display: inline-block;
+            animation: scaleIn 0.5s ease-out;
+        }
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        h2 { margin: 0; color: #1a202c; font-size: 1.8rem; letter-spacing: -0.5px; }
+        .message { color: #718096; margin-top: 10px; font-size: 1rem; line-height: 1.5; }
+        
+        /* Receipt Box */
+        .receipt-container {
+            margin: 2rem 0;
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+        .receipt-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .receipt-id {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 800;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+        
         .btn-home { 
-            display: inline-block; background: #0062ff; color: white; 
-            text-decoration: none; padding: 0.8rem 2rem; 
-            border-radius: 10px; font-weight: 600; transition: 0.2s; 
+            display: inline-block;
+            background: var(--primary); 
+            color: white; 
+            text-decoration: none;
+            padding: 1rem 2rem; 
+            width: 100%; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 1rem; 
+            transition: all 0.2s;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0, 98, 255, 0.2);
         }
-        .btn-home:hover { background: #0052d6; transform: translateY(-2px); }
+        .btn-home:hover { 
+            background: #0052d6; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 98, 255, 0.3);
+        }
+
+        .footer-note {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="check-icon">✅</div>
-        <h2>Vote Recorded!</h2>
-        <p>Your selection has been securely encrypted and added to the <strong>JNTU-GV Blockchain Ledger</strong>.</p>
-        <a href="/" class="btn-home">Back to Home</a>
+
+<div class="card">
+    <div class="check-icon">✅</div>
+    <h2>Vote Confirmed!</h2>
+    <p class="message">Your selection has been successfully encrypted and mined into the JNTU-GV Blockchain ledger.</p>
+
+    <div class="receipt-container">
+        <span class="receipt-label">Blockchain Digital Receipt</span>
+        <div class="receipt-id">{{ receipt }}</div>
     </div>
+
+    <a href="/" class="btn-home">Return to Home</a>
+
+    <div class="footer-note">
+        You can use this receipt to verify your vote in the public audit ledger.
+    </div>
+</div>
+
 </body>
 </html>

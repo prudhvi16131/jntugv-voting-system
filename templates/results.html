@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Admin Portal</title>
     <style>
-        :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --bg: #f8fafc; --text: #1e293b; }
+        :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --accent: #8b5cf6; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
         .container { max-width: 900px; margin: 0 auto; }
         
         .admin-header { text-align: center; margin-bottom: 2rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        
+        /* Stats Grid with Analytics */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-box { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
-        .stat-label { font-size: 0.85rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
         .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
+        .stat-sub { font-size: 0.85rem; color: #94a3b8; margin-top: 5px; display: block; }
 
         .admin-card { background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
@@ -22,10 +25,10 @@
         th { text-align: left; padding: 1rem; background: #f1f5f9; color: #475569; font-size: 0.9rem; }
         td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
 
-        /* Compact Layout for Forms */
+        /* Compact Form Styling */
         .form-container { max-width: 500px; } 
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        input { padding: 0.6rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s; }
+        input { padding: 0.65rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s; }
         input:focus { border-color: var(--primary); outline: none; }
         
         label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px; }
@@ -44,7 +47,7 @@
 <div class="container">
     <div class="admin-header">
         <h1>JNTU-GV Admin Dashboard</h1>
-        <p style="color: #64748b;">Blockchain Electoral Control Panel</p>
+        <p style="color: #64748b;">Blockchain Electoral Control & Analytics</p>
     </div>
     
     <div class="stats-grid">
@@ -52,9 +55,14 @@
             <div class="stat-label">Leading Candidate</div>
             <div class="stat-value">{{ winner }}</div>
         </div>
+        <div class="stat-box" style="border-left-color: var(--accent);">
+            <div class="stat-label">Voter Turnout</div>
+            <div class="stat-value" style="color: var(--accent);">{{ turnout }}%</div>
+            <span class="stat-sub">{{ total }} / 80 Students Participated</span>
+        </div>
         <div class="stat-box" style="border-left-color: var(--success);">
-            <div class="stat-label">System Status</div>
-            <div class="stat-value" style="color: var(--success); font-size: 1.2rem;">Live & Encrypted</div>
+            <div class="stat-label">Security</div>
+            <div class="stat-value" style="color: var(--success); font-size: 1.2rem;">SHA-256 Active</div>
         </div>
     </div>
 
@@ -66,7 +74,7 @@
                 {% for name, count in tally.items() %}
                 <tr><td>{{ name }}</td><td><strong>{{ count }}</strong></td></tr>
                 {% else %}
-                <tr><td colspan="2" style="color: #94a3b8;">No votes recorded in blockchain yet.</td></tr>
+                <tr><td colspan="2" style="color: #94a3b8;">Waiting for the first block to be mined...</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -84,7 +92,7 @@
                 {% endfor %}
             </div>
             <button type="button" class="btn btn-add" onclick="addRow()">+ Add Candidate</button>
-            <button type="submit" class="btn btn-save">Update Participants</button>
+            <button type="submit" class="btn btn-save">Update Election List</button>
         </form>
     </div>
 
@@ -101,21 +109,21 @@
                     <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
                 </div>
             </div>
-            <button type="submit" class="btn btn-save" style="background: var(--primary);">Save Schedule</button>
+            <button type="submit" class="btn btn-save" style="background: var(--primary);">Save Timing</button>
         </form>
     </div>
 
     <div class="admin-card" style="border-left: 5px solid var(--danger); background-color: #fef2f2;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
-        <p style="font-size: 0.85rem; color: #991b1b; margin-bottom: 15px;">Wiping will permanently delete all blockchain data.</p>
+        <p style="font-size: 0.85rem; color: #991b1b; margin-bottom: 15px;">Wiping will permanently delete all blockchain records.</p>
         <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: Are you sure you want to delete ALL votes?');" class="form-container">
             <button type="submit" class="btn btn-danger">Wipe Election Data</button>
         </form>
     </div>
 
     <div class="nav-links">
-        <a href="/">← Return to Voting Interface</a>
-        <a href="/ledger">Download Ledger</a>
+        <a href="/">← Student Voting Page</a>
+        <a href="/ledger">Download Audit Ledger</a>
     </div>
 </div>
 

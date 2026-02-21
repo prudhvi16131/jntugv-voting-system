@@ -3,13 +3,14 @@ from blockchain import Blockchain
 from datetime import datetime
 import time
 import pytz 
+import hashlib
 import os
 
 app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION & DATABASE ---
-# Admin can change all of this live from the secret admin dashboard
+# Updated range: 24V11A0501 to 24V11A0580
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
     "end": datetime(2026, 2, 25, 17, 0),
@@ -19,65 +20,78 @@ voting_config = {
     ]
 }
 
-# Automatically generates JNTU-GV IDs from 24V11A0501 to 24V11A0580
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 
 # --- 2. PWA / APP SUPPORT ROUTE ---
-# This serves the manifest.json file from your static folder
 @app.route('/manifest.json')
 def serve_manifest():
     return send_from_directory('static', 'manifest.json')
 
-# --- 3. VOTER ROUTES ---
+# --- 3. VOTER INTERFACE ---
 @app.route('/')
 def index():
-    # Force the app to use India Standard Time (IST)
+    # Force India Standard Time for Render
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    if now < voting_config["start"]:
-        return f"<h1>Voting starts at {voting_config['start']} (IST)</h1>"
-    if now > voting_config["end"]:
-        return "<h1>Voting is now closed!</h1>"
+    # Calculate end time in milliseconds for the JS countdown
+    end_ms = int(voting_config["end"].timestamp() * 1000)
     
-    # Pass config so index.html can show the dynamic candidate list
-    return render_template('index.html', config=voting_config)
+    if now < voting_config["start"]:
+        return render_template('index.html', config=voting_config, status="waiting")
+    if now > voting_config["end"]:
+        return render_template('index.html', config=voting_config, status="closed")
+    
+    return render_template('index.html', config=voting_config, status="live", end_ms=end_ms)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
     voter_id = request.form.get('voter_id')
     candidate = request.form.get('candidate')
 
-    # Security: Database Check
+    # Security: Database & Double-Voting Checks
     if voter_id not in AUTHORIZED_VOTERS:
-        return "<h1>Error: Unauthorized Student ID</h1>", 403
+        return "<h1>Unauthorized Student ID</h1>", 403
 
-    # Security: Double-Voting Prevention
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('voter_id') == voter_id:
                 return "<h1>Error: You have already cast your vote!</h1>", 403
 
-    # Mine the vote into the Blockchain
-    vote_data = {"voter_id": voter_id, "candidate": candidate, "timestamp": time.time()}
+    # Upgrade: Generate Digital Receipt (Hash-based Verification)
+    receipt_raw = f"{voter_id}{time.time()}"
+    receipt = hashlib.sha256(receipt_raw.encode()).hexdigest()[:10].upper()
+
+    vote_data = {
+        "voter_id": voter_id, 
+        "candidate": candidate, 
+        "receipt": receipt,
+        "timestamp": time.time()
+    }
+    
     voting_blockchain.add_new_transaction(vote_data)
     voting_blockchain.mine()
     
-    # Render the professional success page
-    return render_template('success.html')
+    return render_template('success.html', receipt=receipt)
 
-# --- 4. ADMIN & RESULTS ROUTES ---
+# --- 4. ADMIN DASHBOARD & ANALYTICS ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
+    total_votes = 0
     for block in voting_blockchain.chain[1:]:
         for tx in block.transactions:
             candidate = tx.get('candidate')
             if candidate:
                 tally[candidate] = tally.get(candidate, 0) + 1
+                total_votes += 1
     
+    # Upgrade: Voter Participation Analytics
+    turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1)
     winner = max(tally, key=tally.get) if tally else "No votes yet"
-    return render_template('results.html', tally=tally, winner=winner, config=voting_config)
+    
+    return render_template('results.html', tally=tally, winner=winner, 
+                           config=voting_config, turnout=turnout, total=total_votes)
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
@@ -91,12 +105,10 @@ def update_time():
 def update_candidates():
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
-    
     updated_list = []
     for n, s in zip(names, symbols):
         if n.strip(): 
             updated_list.append({"name": n, "symbol": s})
-    
     voting_config["candidates"] = updated_list
     return redirect('/admin-results/JNTUGV_SECRET')
 
