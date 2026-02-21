@@ -1,40 +1,54 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden mt-8 border border-slate-100">
-    <div class="bg-indigo-600 p-5">
-        <h2 class="text-2xl font-bold text-white text-center">Cast Your Vote</h2>
-    </div>
-    <div class="p-8">
-        <form action="/cast_vote" method="POST" class="space-y-6">
-            <div>
-                <label class="block text-sm font-semibold mb-2">Student ID</label>
-                <input type="text" name="voter_id" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-3">Select Candidate</label>
-                <div class="space-y-3">
-                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
-                        <input type="radio" name="candidate" value="Candidate A" required class="h-5 w-5 text-indigo-600">
-                        <span class="ml-3 font-medium">Candidate A</span>
-                    </label>
-                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
-                        <input type="radio" name="candidate" value="Candidate B" class="h-5 w-5 text-indigo-600">
-                        <span class="ml-3 font-medium">Candidate B</span>
-                    </label>
-                </div>
-            </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md">
-                Secure Vote on Ledger
-            </button>
-        </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JNTU-GV Blockchain Voting</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .voting-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .logo { width: 80px; margin-bottom: 20px; }
+        h2 { color: #1a1a1a; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; font-size: 0.9em; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input:focus, select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.2); }
+        .btn-vote { background-color: #007bff; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
+        .btn-vote:hover { background-color: #0056b3; }
+        .footer-note { margin-top: 20px; font-size: 0.8em; color: #999; }
+    </style>
+</head>
+<body>
+
+<div class="voting-card">
+    <div style="font-size: 50px; margin-bottom: 10px;">🗳️</div>
+    <h2>JNTU-GV E-Voting</h2>
+    <p>Secure Blockchain-Based Electoral System</p>
+
+    <form action="/cast_vote" method="post">
+        <div class="form-group">
+            <label for="voter_id">Hall Ticket Number</label>
+            <input type="text" id="voter_id" name="voter_id" placeholder="e.g. 24V11A0501" required>
+        </div>
+
+        <div class="form-group">
+            <label for="candidate">Select Candidate</label>
+            <select id="candidate" name="candidate" required>
+                <option value="" disabled selected>Choose your candidate</option>
+                <option value="Candidate A">Candidate A</option>
+                <option value="Candidate B">Candidate B</option>
+                <option value="Candidate C">Candidate C</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-vote">Cast Secure Vote</button>
+    </form>
+
+    <div class="footer-note">
+        Authorized for students 24V11A0501 to 24V11A0580 only.
     </div>
 </div>
-{% endblock %}
-@app.route('/')
-def index():
-    now = datetime.now()
-    if now < voting_config["start"]:
-        return f"<h1>Voting starts at {voting_config['start']}</h1>"
-    if now > voting_config["end"]:
-        return "<h1>Voting is now closed!</h1>"
-    return render_template('index.html')
+
+</body>
+</html>

@@ -2,16 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Admin Results</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
-        .container { background: white; padding: 30px; margin: 0 auto; width: 60%; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 12px; }
-        th { background-color: #007bff; color: white; }
-        .winner { color: green; font-weight: bold; font-size: 1.2em; margin-bottom: 20px; }
-        .admin-box { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
-        .btn-update { background-color: #d9534f; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f4f7f9; padding: 20px; }
+        .container { background: white; padding: 30px; margin: 0 auto; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0px 4px 20px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        .winner-box { background-color: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #bce0ff; }
+        .winner-text { color: #007bff; font-weight: bold; font-size: 1.3em; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #eee; padding: 15px; text-align: center; }
+        th { background-color: #007bff; color: white; text-transform: uppercase; letter-spacing: 1px; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        .admin-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 30px; text-align: left; }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
+        input[type="datetime-local"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn-save { background-color: #28a745; color: white; border: none; padding: 12px 25px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; }
+        .btn-save:hover { background-color: #218838; }
+        .nav-links { margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; }
+        .nav-links a { text-decoration: none; color: #666; font-weight: bold; margin: 0 10px; }
+        .nav-links a:hover { color: #007bff; }
     </style>
 </head>
 <body>
@@ -19,7 +30,9 @@
 <div class="container">
     <h2>JNTU-GV Election Standings</h2>
     
-    <p class="winner">Current Leader: {{ winner }}</p>
+    <div class="winner-box">
+        <p class="winner-text">Current Leader: {{ winner }}</p>
+    </div>
 
     <table>
         <thead>
@@ -36,32 +49,35 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="2">No votes cast yet</td>
+                <td colspan="2">No votes have been recorded in the blockchain yet.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <br>
-    <a href="/">Return to Voting Page</a>
-
-    <div class="admin-box">
+    <div class="admin-section">
         <h3>Admin Control: Edit Election Timing</h3>
         <form action="/update-time" method="post">
-            <div style="margin-bottom: 15px;">
-                <label><b>Start Date & Time:</b></label><br>
+            <div class="form-group">
+                <label>Election Start Time (IST):</label>
                 <input type="datetime-local" name="start_time" 
                        value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
             </div>
             
-            <div style="margin-bottom: 15px;">
-                <label><b>End Date & Time:</b></label><br>
+            <div class="form-group">
+                <label>Election End Time (IST):</label>
                 <input type="datetime-local" name="end_time" 
                        value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
             </div>
             
-            <button type="submit" class="btn-update">Save New Election Window</button>
+            <button type="submit" class="btn-save">Update Election Window</button>
         </form>
+    </div>
+
+    <div class="nav-links">
+        <a href="/">← Return to Voting Page</a>
+        <a href="/dashboard">View Dashboard</a> 
+        <a href="/ledger">View Public Ledger</a>
     </div>
 </div>
 
