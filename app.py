@@ -11,23 +11,23 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# Initial default candidates (can be edited via the Admin Dashboard)
+# Initial election settings
 voting_config = {
-    "start": datetime(2026, 2, 21, 15, 47),
-    "end": datetime(2026, 2, 21, 15, 50),
+    "start": datetime(2026, 2, 21, 9, 0),
+    "end": datetime(2026, 2, 21, 15, 0), # Can be adjusted via Dashboard
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# Authorized JNTU-GV Student Range
+# JNTU-GV Student Range
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
-    """Writes the current chain state to a JSON file for persistence on Render."""
+    """Saves the chain to a JSON file to prevent data loss on Render restarts."""
     chain_data = [block.__dict__ for block in voting_blockchain.chain]
     with open(STORAGE_FILE, 'w') as f:
         json.dump(chain_data, f)
@@ -39,7 +39,7 @@ def index():
     now = datetime.now(IST).replace(tzinfo=None) 
     end_ms = int(voting_config["end"].timestamp() * 1000)
     
-    # Check election window status
+    # Status determination based on time
     if now < voting_config["start"]:
         status = "waiting"
     elif now > voting_config["end"]:
@@ -57,10 +57,10 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP PRIVACY: Generate a nullifier to hide voter identity
+    # ZKP NULLIFIER: Ensures privacy while preventing double-voting
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
-    # Prevent double-voting
+    # Integrity check: Has this nullifier already voted?
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
@@ -77,7 +77,7 @@ def cast_vote():
     
     voting_blockchain.add_new_transaction(vote_data)
     voting_blockchain.mine()
-    save_blockchain() # Ensure vote is saved to disk
+    save_blockchain() # Save to persistent file
     
     return render_template('success.html', receipt=receipt)
 
@@ -100,7 +100,7 @@ def audit():
                     break
     return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
 
-# --- 5. ADMIN DASHBOARD & MANAGEMENT ---
+# --- 5. ADMIN DASHBOARD & DYNAMIC MANAGEMENT ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -120,21 +120,19 @@ def admin_results():
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    """Handles the dynamic Candidate & Symbol Management column data."""
+    """Handles dynamic candidate and symbol updates."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
-    
     updated_list = []
     for n, s in zip(names, symbols):
         if n.strip():
             updated_list.append({"name": n.strip(), "symbol": s.strip()})
-    
     voting_config["candidates"] = updated_list
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Updates the IST election timeline."""
+    """Updates election timing. Useful to close early if voting is done."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')

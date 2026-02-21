@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Admin Dashboard</title>
+    <title>JNTU-GV Admin Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --accent: #8b5cf6; --bg: #f8fafc; --text: #1e293b; }
@@ -34,6 +34,7 @@
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
 
+        /* Print-Only Styles */
         @media print {
             .no-print, .btn, .nav-links, .admin-card:has(form) { display: none !important; }
             .admin-card { box-shadow: none; border: 1px solid #eee; }
@@ -63,7 +64,7 @@
         </div>
     </div>
 
-    <div class="admin-card">
+    <div class="admin-card no-print">
         <h3>Candidate & Symbol Management</h3>
         <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Use emojis (🦁, 🐘, 🚲) as election symbols.</p>
         
@@ -92,25 +93,6 @@
     </div>
 
     <div class="admin-card">
-        <h3>Election Schedule (IST)</h3>
-        <form action="/update-time" method="post">
-            <div class="input-row">
-                <div style="flex: 1;">
-                    <label>Start Time</label>
-                    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}">
-                </div>
-                <div style="flex: 1;">
-                    <label>End Time</label>
-                    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}">
-                </div>
-            </div>
-            <button type="submit" class="btn" style="background: var(--primary); color: white; width: 100%;">
-                Save New Timing
-            </button>
-        </form>
-    </div>
-
-    <div class="admin-card">
         <h3>Live Standings Visualization</h3>
         <div style="height: 300px;"><canvas id="resultsChart"></canvas></div>
         <button onclick="window.print()" class="btn btn-print">📄 Export Official Audit Report (PDF)</button>
@@ -130,7 +112,26 @@
         </table>
     </div>
 
-    <div class="admin-card" style="border-left: 5px solid var(--danger); background: #fef2f2;">
+    <div class="admin-card no-print">
+        <h3>Election Schedule (IST)</h3>
+        <form action="/update-time" method="post">
+            <div class="input-row">
+                <div style="flex: 1;">
+                    <label>Start Time</label>
+                    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}">
+                </div>
+                <div style="flex: 1;">
+                    <label>End Time</label>
+                    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}">
+                </div>
+            </div>
+            <button type="submit" class="btn" style="background: var(--primary); color: white; width: 100%;">
+                Save New Timing
+            </button>
+        </form>
+    </div>
+
+    <div class="admin-card no-print" style="border-left: 5px solid var(--danger); background: #fef2f2;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
         <form action="/reset-election" method="post" onsubmit="return confirm('Wipe all data?');">
             <button type="submit" class="btn btn-danger">Wipe Election Data</button>
