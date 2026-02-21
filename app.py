@@ -48,7 +48,7 @@ def ledger():
             "timestamp": block.timestamp,
             "previous_hash": block.previous_hash,
             "hash": block.hash
-        }for block in voting_blockchain.chain
+        }for block in blockchain.chain
     ]
     return render_template('ledger.html', chain=chain_data)
 @app.route('/admin-results/JNTUGV_SECRET')
