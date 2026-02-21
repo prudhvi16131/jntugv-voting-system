@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Admin Results</title>
+    <title>JNTU-GV Admin Control</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f4f7f9; padding: 20px; }
-        .container { background: white; padding: 30px; margin: 0 auto; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0px 4px 20px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #f4f7f9; padding: 20px; }
+        .container { background: white; padding: 30px; margin: 0 auto; width: 90%; max-width: 800px; border-radius: 12px; box-shadow: 0px 4px 20px rgba(0,0,0,0.1); }
+        h2, h3 { color: #333; }
         .winner-box { background-color: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #bce0ff; }
-        .winner-text { color: #007bff; font-weight: bold; font-size: 1.3em; margin: 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #eee; padding: 15px; text-align: center; }
-        th { background-color: #007bff; color: white; text-transform: uppercase; letter-spacing: 1px; }
-        tr:nth-child(even) { background-color: #fafafa; }
-        .admin-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 30px; text-align: left; }
-        .form-group { margin-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
-        input[type="datetime-local"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .btn-save { background-color: #28a745; color: white; border: none; padding: 12px 25px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; }
-        .btn-save:hover { background-color: #218838; }
-        .nav-links { margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; }
-        .nav-links a { text-decoration: none; color: #666; font-weight: bold; margin: 0 10px; }
-        .nav-links a:hover { color: #007bff; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background-color: #007bff; color: white; }
+        .admin-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex: 1; }
+        .symbol-input { max-width: 100px; }
+        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-add { background-color: #007bff; color: white; margin-bottom: 10px; width: auto; }
+        .btn-save { background-color: #28a745; color: white; }
+        .nav-links { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .nav-links a { text-decoration: none; color: #007bff; font-weight: bold; margin: 0 10px; }
     </style>
 </head>
 <body>
@@ -31,7 +29,7 @@
     <h2>JNTU-GV Election Standings</h2>
     
     <div class="winner-box">
-        <p class="winner-text">Current Leader: {{ winner }}</p>
+        <p style="color: #007bff; font-weight: bold; font-size: 1.2em; margin: 0;">Current Leader: {{ winner }}</p>
     </div>
 
     <table>
@@ -56,30 +54,59 @@
     </table>
 
     <div class="admin-section">
-        <h3>Admin Control: Edit Election Timing</h3>
+        <h3>Manage Candidates & Symbols</h3>
+        <p style="font-size: 0.9em; color: #666;">Add as many candidates as you need. Use emojis for symbols.</p>
+        <form action="/update-candidates" method="post">
+            <div id="candidate-area">
+                {% for c in config.candidates %}
+                <div class="row">
+                    <input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name" required>
+                    <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" class="symbol-input">
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-add" onclick="addRow()">+ Add New Candidate</button>
+            <button type="submit" class="btn btn-save">Save All Candidates</button>
+        </form>
+    </div>
+
+    <div class="admin-section">
+        <h3>Edit Election Timing (IST)</h3>
         <form action="/update-time" method="post">
-            <div class="form-group">
-                <label>Election Start Time (IST):</label>
-                <input type="datetime-local" name="start_time" 
-                       value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
+            <div class="row">
+                <div style="flex: 1;">
+                    <label>Start Time:</label>
+                    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required style="width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label>End Time:</label>
+                    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required style="width: 100%;">
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label>Election End Time (IST):</label>
-                <input type="datetime-local" name="end_time" 
-                       value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
-            </div>
-            
-            <button type="submit" class="btn-save">Update Election Window</button>
+            <button type="submit" class="btn btn-save">Update Timings</button>
         </form>
     </div>
 
     <div class="nav-links">
-        <a href="/">← Return to Voting Page</a>
-        <a href="/dashboard">View Dashboard</a> 
-        <a href="/ledger">View Public Ledger</a>
+        <a href="/">← Back to Voting</a>
+        <a href="/dashboard">Dashboard</a> 
+        <a href="/ledger">Public Ledger</a>
     </div>
 </div>
+
+<script>
+// JavaScript to add unlimited candidate rows
+function addRow() {
+    const container = document.getElementById('candidate-area');
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.innerHTML = `
+        <input type="text" name="c_name" placeholder="Candidate Name" required>
+        <input type="text" name="c_symbol" placeholder="Symbol" class="symbol-input">
+    `;
+    container.appendChild(div);
+}
+</script>
 
 </body>
 </html>

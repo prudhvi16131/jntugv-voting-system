@@ -7,16 +7,15 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .voting-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .logo { width: 80px; margin-bottom: 20px; }
-        h2 { color: #1a1a1a; margin-bottom: 10px; }
+        h2 { color: #1a1a1a; margin-bottom: 5px; }
         p { color: #666; margin-bottom: 30px; font-size: 0.9em; }
         .form-group { text-align: left; margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
-        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fff; }
         input:focus, select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.2); }
         .btn-vote { background-color: #007bff; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
         .btn-vote:hover { background-color: #0056b3; }
-        .footer-note { margin-top: 20px; font-size: 0.8em; color: #999; }
+        .footer-note { margin-top: 25px; font-size: 0.75em; color: #aaa; border-top: 1px solid #eee; padding-top: 15px; }
     </style>
 </head>
 <body>
@@ -36,9 +35,9 @@
             <label for="candidate">Select Candidate</label>
             <select id="candidate" name="candidate" required>
                 <option value="" disabled selected>Choose your candidate</option>
-                <option value="Candidate A">Candidate A</option>
-                <option value="Candidate B">Candidate B</option>
-                <option value="Candidate C">Candidate C</option>
+                {% for c in config.candidates %}
+                <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -46,7 +45,7 @@
     </form>
 
     <div class="footer-note">
-        Authorized for students 24V11A0501 to 24V11A0580 only.
+        Authorized for JNTU-GV Students 24V11A0501 to 24V11A0580.
     </div>
 </div>
 

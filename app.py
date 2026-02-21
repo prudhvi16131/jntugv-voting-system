@@ -7,11 +7,15 @@ import pytz
 app = Flask(__name__)
 voting_blockchain = Blockchain()
 
-# --- 1. CONFIGURATION & VOTER DATABASE ---
-# Mutable timing for Admin edits
+# --- 1. CONFIGURATION & DATABASE ---
+# Admin can change all of this live from the /admin-results page
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
-    "end": datetime(2026, 2, 25, 17, 0)
+    "end": datetime(2026, 2, 25, 17, 0),
+    "candidates": [
+        {"name": "Candidate A", "symbol": "🦁"},
+        {"name": "Candidate B", "symbol": "🐘"}
+    ]
 }
 
 # Automatically generates JNTU-GV IDs from 24V11A0501 to 24V11A0580
@@ -20,7 +24,7 @@ AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 # --- 2. VOTER ROUTES ---
 @app.route('/')
 def index():
-    # IST Timezone fix for Render servers
+    # Force the app to use India Standard Time (IST)
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
@@ -29,7 +33,8 @@ def index():
     if now > voting_config["end"]:
         return "<h1>Voting is now closed!</h1>"
     
-    return render_template('index.html')
+    # Pass config so index.html can show the dynamic candidate list
+    return render_template('index.html', config=voting_config)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
@@ -54,7 +59,7 @@ def cast_vote():
     # "Vote and Go" Workflow: Hides results from students
     return "<h1>Success! Your vote for JNTU-GV has been recorded.</h1><p>Thank you for participating.</p><a href='/'>Back to Home</a>"
 
-# --- 3. ADMIN & RESULTS (Hidden from students) ---
+# --- 3. ADMIN & RESULTS ROUTES ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -73,6 +78,20 @@ def update_time():
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
     voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
+    return redirect('/admin-results/JNTUGV_SECRET')
+
+@app.route('/update-candidates', methods=['POST'])
+def update_candidates():
+    # Pulls all names and symbols submitted from the dynamic admin form
+    names = request.form.getlist('c_name')
+    symbols = request.form.getlist('c_symbol')
+    
+    updated_list = []
+    for n, s in zip(names, symbols):
+        if n.strip(): # Only add if the name field is not empty
+            updated_list.append({"name": n, "symbol": s})
+    
+    voting_config["candidates"] = updated_list
     return redirect('/admin-results/JNTUGV_SECRET')
 
 # --- 4. START SERVER ---
