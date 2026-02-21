@@ -120,21 +120,7 @@ def ledger():
             "hash": block.hash
         })
     return render_template('ledger.html', chain=chain_data)
-
-@app.route('/admin-results/JNTUGV_SECRET')
-def admin_results():
-    tally = {}
-    for block in voting_blockchain.chain[1:]:
-        for tx in block.transactions:
-            candidate = tx.get('candidate')
-            if candidate:
-                tally[candidate] = tally.get(candidate, 0) + 1
-    
-    winner = max(tally, key=tally.get) if tally else "No votes cast"
-    return render_template('results.html', tally=tally, winner=winner)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)# Make these variables global so they can be edited
+# Make these variables global so they can be edited
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
     "end": datetime(2026, 2, 25, 17, 0)
@@ -163,3 +149,5 @@ def update_time():
     voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
     
     return redirect('/admin-results/JNTUGV_SECRET')
+    if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
