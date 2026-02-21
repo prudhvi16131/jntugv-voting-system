@@ -1,45 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>JNTU-GV Admin Results</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        .container { background: white; padding: 20px; margin: 50px auto; width: 50%; border-radius: 10px; box-shadow: 0px 0px 10px gray; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
+        .container { background: white; padding: 30px; margin: 0 auto; width: 60%; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 10px; }
+        th, td { border: 1px solid #ddd; padding: 12px; }
         th { background-color: #007bff; color: white; }
-        .winner { color: green; font-weight: bold; font-size: 20px; }
+        .winner { color: green; font-weight: bold; font-size: 1.2em; margin-bottom: 20px; }
+        .admin-box { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
+        .btn-update { background-color: #d9534f; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>JNTU-GV Election Standings</h2>
-        <p class="winner">Current Leader: {{ winner }}</p>
-        <table>
+
+<div class="container">
+    <h2>JNTU-GV Election Standings</h2>
+    
+    <p class="winner">Current Leader: {{ winner }}</p>
+
+    <table>
+        <thead>
             <tr>
                 <th>Candidate</th>
                 <th>Votes Received</th>
             </tr>
+        </thead>
+        <tbody>
             {% for name, count in tally.items() %}
             <tr>
                 <td>{{ name }}</td>
                 <td>{{ count }}</td>
             </tr>
+            {% else %}
+            <tr>
+                <td colspan="2">No votes cast yet</td>
+            </tr>
             {% endfor %}
-        </table>
-        <br>
-        <a href="/">Return to Voting Page</a>
+        </tbody>
+    </table>
+
+    <br>
+    <a href="/">Return to Voting Page</a>
+
+    <div class="admin-box">
+        <h3>Admin Control: Edit Election Timing</h3>
+        <form action="/update-time" method="post">
+            <div style="margin-bottom: 15px;">
+                <label><b>Start Date & Time:</b></label><br>
+                <input type="datetime-local" name="start_time" 
+                       value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label><b>End Date & Time:</b></label><br>
+                <input type="datetime-local" name="end_time" 
+                       value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
+            </div>
+            
+            <button type="submit" class="btn-update">Save New Election Window</button>
+        </form>
     </div>
+</div>
+
 </body>
 </html>
-<hr>
-<h3>Edit Election Timing</h3>
-<form action="/update-time" method="post">
-    <label>Start Time:</label>
-    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
-    <br><br>
-    <label>End Time:</label>
-    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
-    <br><br>
-    <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px;">Update Election Window</button>
-</form>
