@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Audit | JNTU-GV Blockchain</title>
+    <style>
+        :root { --primary: #0062ff; --bg: #f8fafc; --success: #10b981; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .audit-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; box-sizing: border-box; margin: 1rem 0; text-align: center; font-family: monospace; }
+        .btn-search { background: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .result-box { margin-top: 2rem; padding: 1.5rem; border: 2px solid var(--success); border-radius: 15px; background: #f0fff4; animation: fadeIn 0.5s; }
+        .data-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-top: 10px; }
+        .data-value { font-family: monospace; word-break: break-all; color: #1e293b; font-size: 0.95rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="audit-card">
+        <h2 style="text-align: center; margin-top: 0;">Independent Audit</h2>
+        <p style="color: #64748b; text-align: center;">Enter your Digital Receipt to verify your vote on the blockchain.</p>
+        
+        <form method="POST">
+            <input type="text" name="receipt" placeholder="Enter Receipt (e.g. 653160D0CD)" value="{{ searched_id or '' }}" required>
+            <button type="submit" class="btn-search">Verify Integrity</button>
+        </form>
+
+        {% if result %}
+        <div class="result-box">
+            <h4 style="color: var(--success); margin-top: 0;">✅ Vote Verified in Block #{{ result.block_index }}</h4>
+            <span class="data-label">Merkle Root (Integrity Seal)</span>
+            <span class="data-value">{{ result.merkle_root }}</span>
+            
+            <span class="data-label">Previous Block Hash</span>
+            <span class="data-value">{{ result.prev_hash }}</span>
+            
+            <p style="font-size: 0.85rem; color: #4a5568; margin-top: 15px; border-top: 1px solid #c6f6d5; padding-top: 10px;">
+                This proof confirms your vote for <b>{{ result.candidate }}</b> is immutable and part of the authorized chain.
+            </p>
+        </div>
+        {% elif searched_id %}
+        <p style="color: #e53e3e; text-align: center; margin-top: 2rem;">❌ No matching record found for this receipt.</p>
+        {% endif %}
+    </div>
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/" style="color: #64748b; text-decoration: none; font-weight: 600;">← Back to Voting Home</a>
+    </div>
+</div>
+</body>
+</html>

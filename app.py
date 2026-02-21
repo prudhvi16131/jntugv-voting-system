@@ -32,8 +32,6 @@ def serve_manifest():
 def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
-    
-    # End time in ms for the JS countdown
     end_ms = int(voting_config["end"].timestamp() * 1000)
     
     if now < voting_config["start"]:
@@ -48,25 +46,20 @@ def cast_vote():
     voter_id = request.form.get('voter_id')
     candidate = request.form.get('candidate')
 
-    # Security: Database Check
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ADVANCED UPGRADE: ZKP NULLIFIER
-    # Creates a unique cryptographic proof of the ID without revealing it.
-    # This prevents double-voting while maintaining total voter privacy.
+    # ZKP NULLIFIER: Prevents double-voting while keeping ID off the blockchain
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
-    # Check blockchain for the nullifier to prevent double-voting
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Generate Digital Receipt for the student
+    # Generate the Digital Receipt
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
-    # The block stores the nullifier and candidate, NOT the voter_id
     vote_data = {
         "nullifier": nullifier, 
         "candidate": candidate, 
@@ -79,7 +72,29 @@ def cast_vote():
     
     return render_template('success.html', receipt=receipt)
 
-# --- 4. ADMIN DASHBOARD & ANALYTICS ---
+# --- 4. PUBLIC AUDIT INTERFACE ---
+@app.route('/audit', methods=['GET', 'POST'])
+def audit():
+    search_result = None
+    receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
+
+    if receipt_to_find:
+        # Search the blockchain for the specific digital receipt
+        for block in voting_blockchain.chain:
+            for tx in block.transactions:
+                if tx.get('receipt') == receipt_to_find.strip().upper():
+                    search_result = {
+                        "block_index": block.index,
+                        "merkle_root": block.merkle_root,
+                        "timestamp": datetime.fromtimestamp(block.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
+                        "candidate": tx.get('candidate'),
+                        "prev_hash": block.previous_hash
+                    }
+                    break
+    
+    return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
+
+# --- 5. ADMIN DASHBOARD & ANALYTICS ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -91,7 +106,6 @@ def admin_results():
                 tally[candidate] = tally.get(candidate, 0) + 1
                 total_votes += 1
     
-    # Analytics: Turnout %
     turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1)
     winner = max(tally, key=tally.get) if tally else "No votes yet"
     
@@ -125,12 +139,9 @@ def reset_election():
 
 @app.route('/ledger')
 def ledger():
-    # Chain data now includes Merkle Roots in block headers
     chain_data = []
     for block in voting_blockchain.chain:
-        block_info = block.__dict__.copy()
-        # Ensure transactions are serializable
-        chain_data.append(block_info)
+        chain_data.append(block.__dict__)
     return render_template('ledger.html', chain=chain_data)
 
 if __name__ == '__main__':
