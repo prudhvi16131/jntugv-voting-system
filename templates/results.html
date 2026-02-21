@@ -22,11 +22,13 @@
         th { text-align: left; padding: 1rem; background: #f1f5f9; color: #475569; font-size: 0.9rem; }
         td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
 
+        /* Compact Layout for Forms */
+        .form-container { max-width: 500px; } 
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        input { padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s; }
+        input { padding: 0.6rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s; }
         input:focus { border-color: var(--primary); outline: none; }
         
-        label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px; }
+        label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px; }
 
         .btn { padding: 0.8rem 1.5rem; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; display: inline-block; text-align: center; }
         .btn-add { background: #e0e7ff; color: var(--primary); margin-bottom: 1rem; }
@@ -72,7 +74,7 @@
 
     <div class="admin-card">
         <h3>Candidate & Symbol Management</h3>
-        <form action="/update-candidates" method="post">
+        <form action="/update-candidates" method="post" class="form-container">
             <div id="candidate-list">
                 {% for c in config.candidates %}
                 <div class="input-row">
@@ -81,14 +83,14 @@
                 </div>
                 {% endfor %}
             </div>
-            <button type="button" class="btn btn-add" onclick="addRow()">+ Add New Candidate</button>
+            <button type="button" class="btn btn-add" onclick="addRow()">+ Add Candidate</button>
             <button type="submit" class="btn btn-save">Update Participants</button>
         </form>
     </div>
 
     <div class="admin-card">
         <h3>Election Schedule (IST)</h3>
-        <form action="/update-time" method="post">
+        <form action="/update-time" method="post" class="form-container">
             <div class="input-row">
                 <div style="flex: 1;">
                     <label>Start Time</label>
@@ -106,7 +108,7 @@
     <div class="admin-card" style="border-left: 5px solid var(--danger); background-color: #fef2f2;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
         <p style="font-size: 0.85rem; color: #991b1b; margin-bottom: 15px;">Wiping will permanently delete all blockchain data.</p>
-        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: Are you sure you want to delete ALL votes?');">
+        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: Are you sure you want to delete ALL votes?');" class="form-container">
             <button type="submit" class="btn btn-danger">Wipe Election Data</button>
         </form>
     </div>
