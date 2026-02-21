@@ -3,109 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Admin Control</title>
+    <title>JNTU-GV Admin Portal</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #f4f7f9; padding: 20px; }
-        .container { background: white; padding: 30px; margin: 0 auto; width: 90%; max-width: 800px; border-radius: 12px; box-shadow: 0px 4px 20px rgba(0,0,0,0.1); }
-        h2, h3 { color: #333; }
-        .winner-box { background-color: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #bce0ff; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background-color: #007bff; color: white; }
-        .admin-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex: 1; }
-        .symbol-input { max-width: 100px; }
-        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-add { background-color: #007bff; color: white; margin-bottom: 10px; width: auto; }
-        .btn-save { background-color: #28a745; color: white; }
-        .nav-links { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .nav-links a { text-decoration: none; color: #007bff; font-weight: bold; margin: 0 10px; }
+        :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        /* Header & Stat Boxes */
+        .admin-header { text-align: center; margin-bottom: 3rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
+        .stat-label { font-size: 0.85rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
+
+        /* Sections */
+        .admin-card { background: white; border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1rem; background: #f1f5f9; color: #475569; font-size: 0.9rem; }
+        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
+
+        /* Form Elements */
+        .input-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        input { padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; width: 100%; transition: border-color 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; }
+        
+        .btn { padding: 0.8rem 1.5rem; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; display: inline-block; text-align: center; }
+        .btn-add { background: #e0e7ff; color: var(--primary); margin-bottom: 1rem; width: auto; }
+        .btn-add:hover { background: #c7d2fe; }
+        .btn-save { background: var(--success); color: white; width: 100%; font-size: 1rem; margin-top: 10px; }
+        .btn-save:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); color: white; width: 100%; margin-top: 10px; }
+
+        .nav-links { display: flex; justify-content: center; gap: 2rem; margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; }
+        .nav-links a { color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>JNTU-GV Election Standings</h2>
+    <div class="admin-header">
+        <h1>JNTU-GV Admin Dashboard</h1>
+        <p style="color: #64748b;">Blockchain Electoral Control Panel</p>
+    </div>
     
-    <div class="winner-box">
-        <p style="color: #007bff; font-weight: bold; font-size: 1.2em; margin: 0;">Current Leader: {{ winner }}</p>
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-label">Leading Candidate</div>
+            <div class="stat-value">{{ winner }}</div>
+        </div>
+        <div class="stat-box" style="border-left-color: var(--success);">
+            <div class="stat-label">Security Status</div>
+            <div class="stat-value" style="color: var(--success); font-size: 1.2rem;">Encryption Active</div>
+        </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Candidate</th>
-                <th>Votes Received</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for name, count in tally.items() %}
-            <tr>
-                <td>{{ name }}</td>
-                <td>{{ count }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="2">No votes have been recorded in the blockchain yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="admin-card">
+        <h3>Live Vote Standings</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Total Votes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, count in tally.items() %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td><strong>{{ count }}</strong></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="color: #94a3b8;">Waiting for the first block to be mined...</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-    <div class="admin-section">
-        <h3>Manage Candidates & Symbols</h3>
-        <p style="font-size: 0.9em; color: #666;">Add as many candidates as you need. Use emojis for symbols.</p>
+    <div class="admin-card">
+        <h3>Candidate & Symbol Management</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Use emojis (🦁, 🐘, 🚲) as election symbols.</p>
         <form action="/update-candidates" method="post">
-            <div id="candidate-area">
+            <div id="candidate-list">
                 {% for c in config.candidates %}
-                <div class="row">
-                    <input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name" required>
-                    <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" class="symbol-input">
+                <div class="input-row">
+                    <input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name" required style="flex: 2;">
+                    <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" style="flex: 1;">
                 </div>
                 {% endfor %}
             </div>
             <button type="button" class="btn btn-add" onclick="addRow()">+ Add New Candidate</button>
-            <button type="submit" class="btn btn-save">Save All Candidates</button>
+            <button type="submit" class="btn btn-save">Synchronize Election List</button>
         </form>
     </div>
 
-    <div class="admin-section">
-        <h3>Edit Election Timing (IST)</h3>
+    <div class="admin-card">
+        <h3>Election Schedule (IST)</h3>
         <form action="/update-time" method="post">
-            <div class="row">
+            <div class="input-row">
                 <div style="flex: 1;">
-                    <label>Start Time:</label>
-                    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required style="width: 100%;">
+                    <label style="font-size: 0.8rem; font-weight: bold; color: #64748b;">START TIME</label>
+                    <input type="datetime-local" name="start_time" value="{{ config.start.strftime('%Y-%m-%dT%H:%M') }}" required>
                 </div>
                 <div style="flex: 1;">
-                    <label>End Time:</label>
-                    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required style="width: 100%;">
+                    <label style="font-size: 0.8rem; font-weight: bold; color: #64748b;">END TIME</label>
+                    <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
                 </div>
             </div>
-            <button type="submit" class="btn btn-save">Update Timings</button>
+            <button type="submit" class="btn btn-save" style="background: var(--primary);">Save New Timing</button>
+        </form>
+    </div>
+
+    <div class="admin-card" style="border-left: 5px solid var(--danger); background-color: #fef2f2;">
+        <h3 style="color: #991b1b; border-bottom-color: #fee2e2;">Danger Zone</h3>
+        <p style="font-size: 0.85rem; color: #991b1b; margin-bottom: 15px;">
+            Wiping the election will permanently delete all votes from the blockchain. This cannot be undone.
+        </p>
+        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: Are you sure you want to delete ALL votes and reset the blockchain?');">
+            <button type="submit" class="btn btn-danger">Wipe Election Data</button>
         </form>
     </div>
 
     <div class="nav-links">
-        <a href="/">← Back to Voting</a>
-        <a href="/dashboard">Dashboard</a> 
-        <a href="/ledger">Public Ledger</a>
+        <a href="/">← Return to Voting Interface</a>
+        <a href="/ledger">Download Blockchain Ledger</a>
     </div>
 </div>
 
 <script>
-// JavaScript to add unlimited candidate rows
-function addRow() {
-    const container = document.getElementById('candidate-area');
-    const div = document.createElement('div');
-    div.className = 'row';
-    div.innerHTML = `
-        <input type="text" name="c_name" placeholder="Candidate Name" required>
-        <input type="text" name="c_symbol" placeholder="Symbol" class="symbol-input">
-    `;
-    container.appendChild(div);
-}
+    function addRow() {
+        const container = document.getElementById('candidate-list');
+        const div = document.createElement('div');
+        div.className = 'input-row';
+        div.innerHTML = `
+            <input type="text" name="c_name" placeholder="Candidate Name" required style="flex: 2;">
+            <input type="text" name="c_symbol" placeholder="Symbol" style="flex: 1;">
+        `;
+        container.appendChild(div);
+    }
 </script>
 
 </body>

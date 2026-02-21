@@ -8,7 +8,7 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION & DATABASE ---
-# Admin can change all of this live from the /admin-results page
+# Admin can change all of this live from the secret admin dashboard
 voting_config = {
     "start": datetime(2026, 2, 21, 9, 0),
     "end": datetime(2026, 2, 25, 17, 0),
@@ -24,7 +24,7 @@ AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 # --- 2. VOTER ROUTES ---
 @app.route('/')
 def index():
-    # Force the app to use India Standard Time (IST)
+    # Force the app to use India Standard Time (IST) for Render servers
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
@@ -56,13 +56,14 @@ def cast_vote():
     voting_blockchain.add_new_transaction(vote_data)
     voting_blockchain.mine()
     
-    # "Vote and Go" Workflow: Hides results from students
-    return "<h1>Success! Your vote for JNTU-GV has been recorded.</h1><p>Thank you for participating.</p><a href='/'>Back to Home</a>"
+    # Modern Success Redirect
+    return render_template('success.html')
 
 # --- 3. ADMIN & RESULTS ROUTES ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
+    # Skip Genesis block and calculate totals from the chain
     for block in voting_blockchain.chain[1:]:
         for tx in block.transactions:
             candidate = tx.get('candidate')
@@ -82,7 +83,7 @@ def update_time():
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    # Pulls all names and symbols submitted from the dynamic admin form
+    # Pulls all names and symbols from the dynamic admin form
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
     
@@ -93,6 +94,19 @@ def update_candidates():
     
     voting_config["candidates"] = updated_list
     return redirect('/admin-results/JNTUGV_SECRET')
+
+@app.route('/reset-election', methods=['POST'])
+def reset_election():
+    # Re-initialize the blockchain to wipe test data
+    global voting_blockchain
+    voting_blockchain = Blockchain()
+    return redirect('/admin-results/JNTUGV_SECRET')
+
+@app.route('/ledger')
+def ledger():
+    # Public ledger view for verification
+    chain_data = [block.__dict__ for block in voting_blockchain.chain]
+    return render_template('ledger.html', chain=chain_data)
 
 # --- 4. START SERVER ---
 if __name__ == '__main__':

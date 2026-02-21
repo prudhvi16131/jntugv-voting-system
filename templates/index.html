@@ -3,49 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Blockchain Voting</title>
+    <title>JNTU-GV Secure Voting</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .voting-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: #1a1a1a; margin-bottom: 5px; }
-        p { color: #666; margin-bottom: 30px; font-size: 0.9em; }
-        .form-group { text-align: left; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
-        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fff; }
-        input:focus, select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.2); }
-        .btn-vote { background-color: #007bff; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
-        .btn-vote:hover { background-color: #0056b3; }
-        .footer-note { margin-top: 25px; font-size: 0.75em; color: #aaa; border-top: 1px solid #eee; padding-top: 15px; }
+        :root { 
+            --primary: #0062ff; 
+            --secondary: #6c757d; 
+            --bg: #f0f4f8; 
+        }
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: #2d3748;
+        }
+        .card { 
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); 
+            width: 90%; 
+            max-width: 420px; 
+            text-align: center;
+        }
+        .header { margin-bottom: 2rem; }
+        .logo-icon { 
+            font-size: 3rem; 
+            margin-bottom: 1rem; 
+            display: inline-block;
+        }
+        h2 { margin: 0; color: #1a202c; font-size: 1.6rem; letter-spacing: -0.5px; }
+        p.subtitle { color: #718096; margin-top: 8px; font-size: 0.95rem; }
+        
+        .form-group { text-align: left; margin-bottom: 1.5rem; }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 0.6rem; 
+            color: #4a5568; 
+            font-size: 0.9rem;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 0.85rem; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            transition: all 0.2s; 
+            box-sizing: border-box;
+            background-color: #f8fafc;
+        }
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            outline: none; 
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 98, 255, 0.1);
+        }
+        
+        .btn-vote { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 1.1rem; 
+            width: 100%; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            margin-top: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 98, 255, 0.2);
+        }
+        .btn-vote:hover { 
+            background: #0052d6; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 98, 255, 0.3);
+        }
+        .btn-vote:active { transform: translateY(0); }
+
+        .footer { 
+            margin-top: 2rem; 
+            font-size: 0.8rem; 
+            color: #a0aec0; 
+            border-top: 1px solid #edf2f7; 
+            padding-top: 1.2rem; 
+            line-height: 1.4;
+        }
+        .highlight { color: #4a5568; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="voting-card">
-    <div style="font-size: 50px; margin-bottom: 10px;">🗳️</div>
-    <h2>JNTU-GV E-Voting</h2>
-    <p>Secure Blockchain-Based Electoral System</p>
+<div class="card">
+    <div class="header">
+        <div class="logo-icon">🛡️</div>
+        <h2>JNTU-GV E-Voting</h2>
+        <p class="subtitle">Secure Blockchain-Based Selection</p>
+    </div>
 
     <form action="/cast_vote" method="post">
         <div class="form-group">
             <label for="voter_id">Hall Ticket Number</label>
-            <input type="text" id="voter_id" name="voter_id" placeholder="e.g. 24V11A0501" required>
+            <input type="text" id="voter_id" name="voter_id" placeholder="e.g., 24V11A0501" required>
         </div>
 
         <div class="form-group">
-            <label for="candidate">Select Candidate</label>
+            <label for="candidate">Choose Your Candidate</label>
             <select id="candidate" name="candidate" required>
-                <option value="" disabled selected>Choose your candidate</option>
+                <option value="" disabled selected>Select candidate from list</option>
                 {% for c in config.candidates %}
                 <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        <button type="submit" class="btn-vote">Cast Secure Vote</button>
+        <button type="submit" class="btn-vote">Confirm Secure Vote</button>
     </form>
 
-    <div class="footer-note">
-        Authorized for JNTU-GV Students 24V11A0501 to 24V11A0580.
+    <div class="footer">
+        Verified for JNTU-GV Students <br>
+        <span class="highlight">24V11A0501 — 24V11A0580</span>
     </div>
 </div>
 
