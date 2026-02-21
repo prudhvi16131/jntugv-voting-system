@@ -63,6 +63,5 @@ def admin_results():
     # This finds which candidate has the most votes
     winner = max(tally, key=tally.get) if tally else "No votes cast yet"
     return render_template('results.html', tally=tally, winner=winner)
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
