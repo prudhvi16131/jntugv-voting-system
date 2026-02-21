@@ -5,6 +5,7 @@ import time
 import pytz 
 import hashlib
 import os
+import json
 
 app = Flask(__name__)
 voting_blockchain = Blockchain()
@@ -21,11 +22,14 @@ voting_config = {
 }
 
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
+STORAGE_FILE = 'blockchain_storage.json'
 
-# --- 2. PWA / APP SUPPORT ---
-@app.route('/manifest.json')
-def serve_manifest():
-    return send_from_directory('static', 'manifest.json')
+# --- 2. PERSISTENCE & INITIALIZATION ---
+def save_blockchain():
+    """Writest the chain to a JSON file to survive Render free-tier restarts."""
+    chain_data = [block.__dict__ for block in voting_blockchain.chain]
+    with open(STORAGE_FILE, 'w') as f:
+        json.dump(chain_data, f)
 
 # --- 3. VOTER INTERFACE ---
 @app.route('/')
@@ -49,15 +53,16 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP NULLIFIER: Prevents double-voting while keeping ID off the blockchain
+    # ZKP NULLIFIER: Cryptographic proof of ID without storing sensitive data
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
+    # Check for double-voting using the nullifier
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Generate the Digital Receipt
+    # Generate the Digital Receipt for audit verification
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -69,17 +74,18 @@ def cast_vote():
     
     voting_blockchain.add_new_transaction(vote_data)
     voting_blockchain.mine()
+    save_blockchain() # Persistent save
     
     return render_template('success.html', receipt=receipt)
 
-# --- 4. PUBLIC AUDIT INTERFACE ---
+# --- 4. PUBLIC AUDIT & VERIFICATION ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit():
     search_result = None
     receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
 
     if receipt_to_find:
-        # Search the blockchain for the specific digital receipt
+        # Search every block for the matching receipt code
         for block in voting_blockchain.chain:
             for tx in block.transactions:
                 if tx.get('receipt') == receipt_to_find.strip().upper():
@@ -91,7 +97,6 @@ def audit():
                         "prev_hash": block.previous_hash
                     }
                     break
-    
     return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
 
 # --- 5. ADMIN DASHBOARD & ANALYTICS ---
@@ -112,37 +117,19 @@ def admin_results():
     return render_template('results.html', tally=tally, winner=winner, 
                            config=voting_config, turnout=turnout, total=total_votes)
 
-@app.route('/update-time', methods=['POST'])
-def update_time():
-    new_start = request.form.get('start_time')
-    new_end = request.form.get('end_time')
-    voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
-    voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
-    return redirect('/admin-results/JNTUGV_SECRET')
-
-@app.route('/update-candidates', methods=['POST'])
-def update_candidates():
-    names = request.form.getlist('c_name')
-    symbols = request.form.getlist('c_symbol')
-    updated_list = []
-    for n, s in zip(names, symbols):
-        if n.strip(): 
-            updated_list.append({"name": n, "symbol": s})
-    voting_config["candidates"] = updated_list
-    return redirect('/admin-results/JNTUGV_SECRET')
-
 @app.route('/reset-election', methods=['POST'])
 def reset_election():
     global voting_blockchain
     voting_blockchain = Blockchain()
+    if os.path.exists(STORAGE_FILE):
+        os.remove(STORAGE_FILE)
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/ledger')
 def ledger():
-    chain_data = []
-    for block in voting_blockchain.chain:
-        chain_data.append(block.__dict__)
+    chain_data = [block.__dict__ for block in voting_blockchain.chain]
     return render_template('ledger.html', chain=chain_data)
 
 if __name__ == '__main__':
+    # Using Port 10000 for Render deployment
     app.run(host='0.0.0.0', port=10000)

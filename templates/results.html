@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Admin Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --accent: #8b5cf6; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
@@ -25,21 +26,27 @@
         th { text-align: left; padding: 1rem; background: #f1f5f9; color: #475569; font-size: 0.9rem; }
         td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
 
-        /* Compact Form Styling */
+        /* Form Layouts */
         .form-container { max-width: 500px; } 
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        input { padding: 0.65rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; width: 100%; box-sizing: border-box; transition: border-color 0.2s; }
-        input:focus { border-color: var(--primary); outline: none; }
-        
+        input { padding: 0.65rem; border: 2px solid #e2e8f0; border-radius: 10px; width: 100%; box-sizing: border-box; }
         label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px; }
 
         .btn { padding: 0.8rem 1.5rem; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; display: inline-block; text-align: center; }
-        .btn-add { background: #e0e7ff; color: var(--primary); margin-bottom: 1rem; }
         .btn-save { background: var(--success); color: white; width: 100%; font-size: 1rem; }
         .btn-danger { background: var(--danger); color: white; width: 100%; }
+        .btn-print { background: #475569; color: white; width: 100%; margin-top: 15px; text-decoration: none; }
 
-        .nav-links { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; }
-        .nav-links a { color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 20px; }
+
+        /* Print-Only Styles for PDF Export */
+        @media print {
+            body { background: white; padding: 0; }
+            .btn, .nav-links, .form-container, .logo-icon, h3:not(:first-of-type), .admin-header p { display: none !important; }
+            .admin-card { box-shadow: none; border: 1px solid #eee; margin-bottom: 10px; }
+            .container { max-width: 100%; }
+            .admin-header h1::after { content: " - Official Election Audit Report"; }
+        }
     </style>
 </head>
 <body>
@@ -61,42 +68,35 @@
             <span class="stat-sub">{{ total }} / 80 Students Participated</span>
         </div>
         <div class="stat-box" style="border-left-color: var(--success);">
-            <div class="stat-label">Security</div>
-            <div class="stat-value" style="color: var(--success); font-size: 1.2rem;">SHA-256 Active</div>
+            <div class="stat-label">System Integrity</div>
+            <div class="stat-value" style="color: var(--success); font-size: 1.2rem;">Merkle Root Active</div>
+            <span class="stat-sub">Lightweight Framework Verified</span>
         </div>
     </div>
 
     <div class="admin-card">
-        <h3>Live Vote Standings</h3>
+        <h3>Live Standings Visualization</h3>
+        <div class="chart-container">
+            <canvas id="resultsChart"></canvas>
+        </div>
+        <button onclick="window.print()" class="btn btn-print">📄 Export Official Audit Report (PDF)</button>
+    </div>
+
+    <div class="admin-card">
+        <h3>Blockchain Vote Tally</h3>
         <table>
             <thead><tr><th>Candidate</th><th>Total Votes</th></tr></thead>
             <tbody>
                 {% for name, count in tally.items() %}
                 <tr><td>{{ name }}</td><td><strong>{{ count }}</strong></td></tr>
                 {% else %}
-                <tr><td colspan="2" style="color: #94a3b8;">Waiting for the first block to be mined...</td></tr>
+                <tr><td colspan="2" style="color: #94a3b8; text-align: center;">Waiting for mined blocks...</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <div class="admin-card">
-        <h3>Candidate & Symbol Management</h3>
-        <form action="/update-candidates" method="post" class="form-container">
-            <div id="candidate-list">
-                {% for c in config.candidates %}
-                <div class="input-row">
-                    <input type="text" name="c_name" value="{{ c.name }}" placeholder="Name" required style="flex: 2;">
-                    <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" style="flex: 1;">
-                </div>
-                {% endfor %}
-            </div>
-            <button type="button" class="btn btn-add" onclick="addRow()">+ Add Candidate</button>
-            <button type="submit" class="btn btn-save">Update Election List</button>
-        </form>
-    </div>
-
-    <div class="admin-card">
+    <div class="admin-card no-print">
         <h3>Election Schedule (IST)</h3>
         <form action="/update-time" method="post" class="form-container">
             <div class="input-row">
@@ -109,33 +109,46 @@
                     <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}" required>
                 </div>
             </div>
-            <button type="submit" class="btn btn-save" style="background: var(--primary);">Save Timing</button>
+            <button type="submit" class="btn btn-save">Update Timeline</button>
         </form>
     </div>
 
-    <div class="admin-card" style="border-left: 5px solid var(--danger); background-color: #fef2f2;">
+    <div class="admin-card no-print" style="border-left: 5px solid var(--danger); background-color: #fef2f2;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
-        <p style="font-size: 0.85rem; color: #991b1b; margin-bottom: 15px;">Wiping will permanently delete all blockchain records.</p>
-        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: Are you sure you want to delete ALL votes?');" class="form-container">
+        <p style="font-size: 0.85rem; color: #7f1d1d;">Resetting the election will wipe the persistent storage file and all mined blocks.</p>
+        <form action="/reset-election" method="post" onsubmit="return confirm('WIPE ALL BLOCKCHAIN DATA? This cannot be undone.');" class="form-container">
             <button type="submit" class="btn btn-danger">Wipe Election Data</button>
         </form>
     </div>
 
-    <div class="nav-links">
-        <a href="/">← Student Voting Page</a>
-        <a href="/ledger">Download Audit Ledger</a>
+    <div class="nav-links no-print" style="text-align: center; margin-top: 2rem; padding-bottom: 2rem;">
+        <a href="/" style="color: #64748b; text-decoration: none; font-weight: 600; margin: 0 10px;">← Home</a> |
+        <a href="/ledger" style="color: #64748b; text-decoration: none; font-weight: 600; margin: 0 10px;">View Full Ledger →</a>
     </div>
 </div>
 
 <script>
-    function addRow() {
-        const container = document.getElementById('candidate-list');
-        const div = document.createElement('div');
-        div.className = 'input-row';
-        div.innerHTML = `<input type="text" name="c_name" placeholder="Name" required style="flex: 2;">
-                         <input type="text" name="c_symbol" placeholder="Symbol" style="flex: 1;">`;
-        container.appendChild(div);
-    }
+    // Initialize Pie Chart
+    const ctx = document.getElementById('resultsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [{% for name in tally.keys() %}"{{ name }}",{% endfor %}],
+            datasets: [{
+                data: [{% for count in tally.values() %}{{ count }},{% endfor %}],
+                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { weight: '600' } } }
+            }
+        }
+    });
 </script>
 </body>
 </html>

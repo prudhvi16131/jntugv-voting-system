@@ -5,14 +5,14 @@ import time
 class MerkleTree:
     """
     Generates a Merkle Root from a list of transactions.
-    This ensures that any change in a single vote will change the entire root hash.
+    Ensures that any change in a single vote will invalidate the entire root hash.
     """
     def __init__(self, transactions):
         self.transactions = transactions
         self.root = self.build_tree(transactions)
 
     def build_tree(self, nodes):
-        # Convert transactions to initial hashes (leaves)
+        # Convert transactions to initial SHA-256 hashes (leaf nodes)
         hashes = [hashlib.sha256(json.dumps(n, sort_keys=True).encode()).hexdigest() for n in nodes]
         
         if not hashes: 
@@ -25,12 +25,12 @@ class MerkleTree:
             
             new_level = []
             for i in range(0, len(hashes), 2):
-                # Combine pairs of hashes to form the next level
+                # Concatenate and hash pairs to form the next level of the tree
                 combined = hashes[i] + hashes[i+1]
                 new_level.append(hashlib.sha256(combined.encode()).hexdigest())
             hashes = new_level
             
-        return hashes[0] # The final Merkle Root
+        return hashes[0] # The final Merkle Root stored in the block header
 
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
@@ -39,7 +39,7 @@ class Block:
         self.timestamp = timestamp
         self.previous_hash = previous_hash
         self.nonce = nonce
-        # Store the Merkle Root in the header for lightweight verification
+        # Lightweight integrity: Store the Merkle Root instead of raw data in the header
         self.merkle_root = MerkleTree(transactions).root
         self.hash = self.compute_hash()
 
@@ -63,14 +63,14 @@ class Blockchain:
 
     def create_genesis_block(self):
         """
-        Generates the first block of the chain.
+        Generates the first block (Genesis Block) of the chain.
         """
         genesis_block = Block(0, [], time.time(), "0")
         self.chain.append(genesis_block)
 
     def add_new_transaction(self, transaction):
         """
-        Adds a new vote to the unconfirmed transaction list.
+        Adds an unconfirmed vote to the transaction pool.
         """
         self.unconfirmed_transactions.append(transaction)
 
@@ -82,12 +82,12 @@ class Blockchain:
             return False
 
         last_block = self.chain[-1]
-        new_block = Block(index=last_block.index + 1,
+        new_block = Block(index=len(self.chain),
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
                           previous_hash=last_block.hash)
         
-        # Difficulty adjustment: Block hash must start with '00'
+        # Difficulty requirement: Block hash must start with '00'
         while not new_block.hash.startswith('00'):
             new_block.nonce += 1
             new_block.hash = new_block.compute_hash()
@@ -98,16 +98,16 @@ class Blockchain:
 
     def is_chain_valid(self):
         """
-        Validates the entire blockchain integrity.
+        Validates the entire blockchain structure and hash links.
         """
         for i in range(1, len(self.chain)):
             current = self.chain[i]
             previous = self.chain[i-1]
             
-            # Check if block hash is correct
+            # Verify block header hash
             if current.hash != current.compute_hash():
                 return False
-            # Check if blocks are linked correctly
+            # Verify cryptographic link to previous block
             if current.previous_hash != previous.hash:
                 return False
         return True
