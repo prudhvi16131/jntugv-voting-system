@@ -35,6 +35,11 @@
             font-weight: 700; font-size: 1.1rem; cursor: pointer; 
         }
         .btn-vote:disabled { background: #cbd5e0; cursor: not-allowed; }
+        .audit-link { 
+            margin-top: 15px; display: block; 
+            color: var(--primary); font-size: 0.9rem; 
+            text-decoration: none; font-weight: 600; 
+        }
     </style>
 </head>
 <body>
@@ -80,13 +85,15 @@
         </div>
     {% endif %}
 
+    <a href="/audit" class="audit-link">🔍 Verify Your Vote Receipt</a>
+
     <div style="margin-top: 2rem; font-size: 0.8rem; color: #a0aec0;">
         Authorized Range: 24V11A0501 — 24V11A0580
     </div>
 </div>
 
 <script>
-    // FIX: Uses total seconds left from Admin Page
+    // Uses remaining seconds from server logic
     let timeLeft = {{ remaining_s | int }};
 
     function updateDisplay() {
@@ -96,7 +103,6 @@
             return;
         }
 
-        // Standard Math for Hours/Minutes/Seconds
         const h = Math.floor(timeLeft / 3600);
         const m = Math.floor((timeLeft % 3600) / 60);
         const s = Math.floor(timeLeft % 60);
@@ -109,7 +115,6 @@
         timeLeft--;
     }
 
-    // Start the interval
     if (timeLeft > 0) {
         setInterval(updateDisplay, 1000);
         updateDisplay();
