@@ -11,23 +11,23 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# Default window (Update these in the Admin Dashboard)
+# These values synchronize with your index.html timer
 voting_config = {
-    "start": datetime(2026, 2, 22, 11, 0),
-    "end": datetime(2026, 2, 22, 12, 0),
+    "start": datetime(2026, 2, 22, 12, 45),
+    "end": datetime(2026, 2, 22, 13, 0),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# JNTU-GV Authorized Range
+# JNTU-GV Authorized Student Range
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
-    """Saves the blockchain to a file for persistent storage on Render."""
+    """Saves the blockchain state to a JSON file for Render persistence."""
     chain_data = [block.__dict__ for block in voting_blockchain.chain]
     with open(STORAGE_FILE, 'w') as f:
         json.dump(chain_data, f)
@@ -38,7 +38,7 @@ def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # Duration-sync logic: Calculates seconds left based on Admin settings
+    # Calculates exact seconds remaining for the frontend timer
     remaining_seconds = int((voting_config["end"] - now).total_seconds())
     
     if now < voting_config["start"]:
@@ -62,7 +62,7 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP Nullifier to prevent double voting
+    # SHA-256 Nullifier to ensure one vote per student
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
     for block in voting_blockchain.chain:
@@ -70,7 +70,7 @@ def cast_vote():
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Generate 10-character receipt for the audit page
+    # Generate 10-character unique receipt for the Audit page
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -86,10 +86,10 @@ def cast_vote():
     
     return render_template('success.html', receipt=receipt)
 
-# --- 4. PUBLIC AUDIT (FIXED ROUTE) ---
+# --- 4. PUBLIC AUDIT INTERFACE ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit():
-    """Searches the blockchain for a specific receipt code."""
+    """Retrieves vote records from the blockchain using a receipt code."""
     search_result = None
     receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
     
@@ -99,15 +99,13 @@ def audit():
                 if tx.get('receipt') == receipt_to_find.strip().upper():
                     search_result = {
                         "block_index": block.index,
-                        "merkle_root": block.merkle_root,
                         "timestamp": datetime.fromtimestamp(block.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
-                        "candidate": tx.get('candidate'),
-                        "prev_hash": block.previous_hash
+                        "candidate": tx.get('candidate')
                     }
                     break
     return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
 
-# --- 5. ADMIN DASHBOARD & MANAGEMENT ---
+# --- 5. ADMIN DASHBOARD LOGIC ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -119,7 +117,7 @@ def admin_results():
                 tally[candidate] = tally.get(candidate, 0) + 1
                 total_votes += 1
     
-    turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1)
+    turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1) if AUTHORIZED_VOTERS else 0
     winner = max(tally, key=tally.get) if tally else "No votes yet"
     
     return render_template('results.html', tally=tally, winner=winner, 
@@ -127,6 +125,7 @@ def admin_results():
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
+    """Handles dynamic candidate list updates from the admin dashboard."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
     updated_list = []
@@ -138,6 +137,7 @@ def update_candidates():
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
+    """Synchronizes server election window with user-defined timings."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
@@ -160,6 +160,6 @@ def reset_election():
     return redirect('/admin-results/JNTUGV_SECRET')
 
 if __name__ == '__main__':
-    # Use Render's environment port
+    # Binds to Render's dynamic port
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
