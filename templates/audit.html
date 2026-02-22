@@ -3,146 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Blockchain Verification</title>
+    <title>JNTU-GV | Blockchain Ledger</title>
     <style>
-        /* Professional UI Root Variables */
-        :root { 
-            --jntu-blue: #1e3a8a; 
-            --accent: #2563eb;
-            --success: #10b981;
-            --error: #ef4444;
-            --bg-glass: rgba(255, 255, 255, 0.98);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-        }
-
+        :root { --jntu-blue: #0066ff; --success-bg: #f0fff4; --success-border: #10b981; }
+        
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            background: radial-gradient(circle at top left, #f1f5f9, #cbd5e1);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8fafc; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
         }
 
-        .audit-container { 
-            background: var(--bg-glass); 
-            padding: 3rem; 
-            border-radius: 32px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            width: 90%; 
-            max-width: 500px; 
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(12px);
-            text-align: center;
+        .audit-card { 
+            background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 480px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; 
         }
 
-        h1 { font-weight: 900; color: var(--jntu-blue); letter-spacing: -0.5px; margin-bottom: 8px; font-size: 1.8rem; }
-        .subtitle { color: var(--text-muted); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2.5rem; }
+        .search-icon { font-size: 50px; margin-bottom: 10px; display: block; }
+        
+        h2 { color: #1e293b; margin-bottom: 5px; font-weight: 700; }
+        .instruction { color: #64748b; font-size: 0.85rem; margin-bottom: 25px; }
 
-        /* Form Styling */
-        .input-wrapper { position: relative; margin-bottom: 1.5rem; }
-        label { display: block; text-align: left; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; margin-left: 4px; text-transform: uppercase; }
         input { 
-            width: 100%; 
-            padding: 1.2rem; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 20px; 
-            font-size: 1.2rem; 
-            box-sizing: border-box; 
-            text-align: center; 
-            letter-spacing: 3px;
-            font-weight: 800;
-            color: var(--text-main);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #f8fafc;
-            text-transform: uppercase;
+            width: 100%; padding: 1.1rem; border: 1px solid #e2e8f0; border-radius: 12px; 
+            font-size: 1.2rem; box-sizing: border-box; text-align: center; 
+            letter-spacing: 2px; font-weight: 600; text-transform: uppercase; margin-bottom: 15px;
         }
-        input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15); outline: none; }
 
-        .btn-verify { 
-            background: var(--jntu-blue); 
-            color: white; 
-            padding: 1.1rem; 
-            border-radius: 20px; 
-            border: none; 
-            width: 100%; 
-            font-weight: 800; 
-            font-size: 1rem;
-            cursor: pointer; 
-            box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.3);
-            transition: all 0.3s ease;
+        .btn-search { 
+            background: var(--jntu-blue); color: white; padding: 1rem; border-radius: 12px; 
+            border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+            transition: 0.2s; margin-bottom: 30px;
         }
-        .btn-verify:hover { background: var(--accent); transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4); }
 
-        /* Verification Result Cards */
-        .result-card { 
-            margin-top: 2.5rem; 
-            padding: 2rem; 
-            border-radius: 24px; 
-            text-align: left; 
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+        /* The Green Sidebar Card Design */
+        .result-container { 
+            background: var(--success-bg); border-radius: 16px; text-align: left;
+            border-left: 6px solid var(--success-border); padding: 1.5rem;
+            animation: fadeIn 0.4s ease;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .success { background: #f0fdf4; border: 2px solid #86efac; }
-        .error { background: #fff1f2; border: 2px solid #fecdd3; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .status-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.2rem; font-weight: 900; font-size: 0.95rem; text-transform: uppercase; }
-        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(0,0,0,0.08); }
-        .row:last-child { border: none; }
-        .label { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; }
-        .val { color: var(--text-main); font-weight: 800; font-size: 0.95rem; }
+        .status-header { display: flex; align-items: center; color: var(--success-border); font-weight: 800; margin-bottom: 15px; font-size: 0.95rem; }
+        
+        .data-label { color: #64748b; font-size: 0.75rem; font-weight: 600; margin-top: 10px; }
+        .data-value { color: #1e293b; font-size: 1rem; font-weight: 700; }
 
         .back-link { 
-            display: inline-block; 
-            margin-top: 2.5rem; 
-            color: #94a3b8; 
-            text-decoration: none; 
-            font-size: 0.85rem; 
-            font-weight: 700; 
-            transition: color 0.2s; 
+            display: inline-block; margin-top: 30px; color: var(--jntu-blue); 
+            text-decoration: none; font-size: 0.85rem; font-weight: 700; 
         }
-        .back-link:hover { color: var(--jntu-blue); }
     </style>
 </head>
 <body>
 
-<div class="audit-container">
-    <h1>Audit Portal</h1>
-    <div class="subtitle">JNTU-GV Blockchain Verification</div>
+<div class="audit-card">
+    <span class="search-icon">🔍</span>
+    <h2>Verify Vote Receipt</h2>
+    <p class="instruction">Enter your 10-character code to see your vote on the blockchain ledger.</p>
 
     <form action="/audit" method="POST">
-        <div class="input-wrapper">
-            <label>Vote Receipt Code</label>
-            <input type="text" name="receipt" placeholder="E.G. A1B2C3D4E5" value="{{ searched_id if searched_id else '' }}" required>
-        </div>
-        <button type="submit" class="btn-verify">Verify Record</button>
+        <input type="text" name="receipt" placeholder="A4AA1BE73A" value="{{ searched_id if searched_id else '' }}" required>
+        <button type="submit" class="btn-search">Search Blockchain Ledger</button>
     </form>
 
     {% if searched_id %}
         {% if result %}
-        <div class="result-card success">
-            <div class="status-header" style="color: var(--success);">✓ BLOCKCHAIN RECORD VERIFIED</div>
-            <div class="row"><span class="label">Ledger Index</span><span class="val">#{{ result.block_index }}</span></div>
-            <div class="row"><span class="label">Mining Time (IST)</span><span class="val">{{ result.timestamp }}</span></div>
-            <div class="row"><span class="label">Candidate Record</span><span class="val">{{ result.candidate }}</span></div>
+        <div class="result-container">
+            <div class="status-header">✅ Vote Verified</div>
+            
+            <div class="data-label">Timestamp (IST):</div>
+            <div class="data-value">{{ result.timestamp }}</div>
+
+            <div style="margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                <div class="data-label">Candidate Voted:</div>
+                <div class="data-value" style="font-size: 1.3rem;">{{ result.candidate }}</div>
+            </div>
         </div>
         {% else %}
-        <div class="result-card error">
-            <div class="status-header" style="color: var(--error);">✕ RECORD NOT FOUND</div>
-            <p style="margin:0; font-size: 0.85rem; line-height: 1.6; color: #991b1b;">
-                The receipt ID <strong>"{{ searched_id }}"</strong> was not found in the decentralized ledger. 
-                Please ensure you copied the code exactly from your successful vote screen.
-            </p>
+        <div class="result-container" style="background: #fff5f5; border-left-color: #ef4444;">
+            <div class="status-header" style="color: #ef4444;">❌ Receipt Not Found</div>
+            <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0;">This code does not exist in the ledger. Please check for typos.</p>
         </div>
         {% endif %}
     {% endif %}
 
-    <a href="/" class="back-link">← Return to Voting System</a>
+    <a href="/" class="back-link">← Return to Voting Page</a>
 </div>
 
 </body>
