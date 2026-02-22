@@ -3,189 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Secure Voting Portal</title>
-    
-    <meta name="theme-color" content="#2563eb">
+    <title>JNTU-GV Secure Voting</title>
     
     <style>
-        /* Professional JNTU-GV Design Theme */
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --danger: #ef4444;
-            --success: #10b981;
+        :root { 
+            --primary: #0062ff; 
+            --bg: #f0f4f8; 
+            --danger: #e53e3e;
         }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-grad);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #1e293b;
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; color: #2d3748;
         }
-
-        /* Glassmorphism Card Effect */
-        .voter-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .card { 
+            background: white; padding: 2.5rem; border-radius: 20px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); 
+            width: 90%; max-width: 420px; text-align: center;
         }
-
-        .logo-area { margin-bottom: 1.5rem; }
-        .logo-icon { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+        .header { margin-bottom: 2rem; }
+        .logo-icon { font-size: 3rem; margin-bottom: 1rem; display: inline-block; }
+        h2 { margin: 0; color: #1a202c; font-size: 1.6rem; }
+        .subtitle { color: #718096; margin-top: 8px; font-size: 0.95rem; }
         
-        h2 { margin: 0; font-size: 1.75rem; color: #111827; letter-spacing: -0.5px; }
-        .subtitle { color: #64748b; font-size: 0.9rem; margin-top: 5px; }
-
-        /* Countdown Timer Styling */
-        .timer-container {
-            background: #fff1f2;
-            border: 1px solid #fecaca;
-            padding: 12px;
-            border-radius: 14px;
-            margin: 20px 0;
+        /* Countdown Timer Box */
+        #timer-container {
+            background: #fff5f5; padding: 15px; border-radius: 12px;
+            margin: 20px 0; border: 1px solid #fed7d7;
         }
-        
-        .timer-label { font-size: 0.75rem; font-weight: 700; color: #991b1b; text-transform: uppercase; }
-        #timer { font-size: 1.4rem; font-weight: 800; color: var(--danger); font-variant-numeric: tabular-nums; }
+        #timer { 
+            font-weight: 800; color: var(--danger); 
+            font-size: 1.4rem; display: block;
+        }
+        .timer-label { font-size: 0.75rem; color: #c53030; font-weight: 700; text-transform: uppercase; }
 
-        /* Form Styling */
         .form-group { text-align: left; margin-bottom: 1.5rem; }
-        label { display: block; font-weight: 700; font-size: 0.85rem; color: #475569; margin-bottom: 8px; text-transform: uppercase; }
+        label { display: block; font-weight: 600; margin-bottom: 0.6rem; color: #4a5568; font-size: 0.9rem; }
+        input, select { 
+            width: 100%; padding: 0.85rem; border: 2px solid #e2e8f0; 
+            border-radius: 12px; font-size: 1rem; box-sizing: border-box;
+            background-color: #f8fafc; transition: all 0.2s;
+        }
+        input:focus, select:focus { 
+            border-color: var(--primary); outline: none; 
+            box-shadow: 0 0 0 4px rgba(0, 98, 255, 0.1);
+        }
         
-        input, select {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            background: #f8fafc;
-            transition: all 0.2s;
+        .btn-vote { 
+            background: var(--primary); color: white; border: none; 
+            padding: 1.1rem; width: 100%; border-radius: 12px; 
+            font-weight: 700; font-size: 1.1rem; cursor: pointer; 
+            transition: all 0.2s; box-shadow: 0 4px 6px rgba(0, 98, 255, 0.2);
         }
+        .btn-vote:hover { background: #0052d6; transform: translateY(-2px); }
+        .btn-vote:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
 
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background: white;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        .footer { 
+            margin-top: 2rem; font-size: 0.85rem; color: #a0aec0; 
+            border-top: 1px solid #edf2f7; padding-top: 1.2rem; 
         }
-
-        .btn-vote {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 1.1rem;
-            width: 100%;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
+        .audit-link {
+            display: inline-block; margin-top: 12px;
+            color: var(--primary); text-decoration: none; font-weight: 700;
         }
-
-        .btn-vote:hover { background: var(--primary-hover); transform: translateY(-2px); }
-        .btn-vote:active { transform: translateY(0); }
-        .btn-vote:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
-
-        .footer-info { margin-top: 2rem; font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
-        .audit-link { 
-            display: inline-block; margin-top: 12px; color: var(--primary); 
-            text-decoration: none; font-weight: 700; font-size: 0.9rem;
-        }
-        .audit-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<div class="voter-card">
-    <div class="logo-area">
-        <span class="logo-icon">🛡️</span>
+<div class="card">
+    <div class="header">
+        <div class="logo-icon">🛡️</div>
         <h2>JNTU-GV E-Voting</h2>
         <p class="subtitle">Blockchain-Secured Student Election</p>
+        
+        <div id="timer-container">
+            <span class="timer-label">Election Window Closing In:</span>
+            <span id="timer">--h --m --s</span>
+        </div>
     </div>
 
-    <div class="timer-container">
-        <div class="timer-label">Election Window Closing In:</div>
-        <div id="timer">Initializing...</div>
-    </div>
-
-    {% if status == 'live' %}
+    {% if status == "live" %}
     <form action="/cast_vote" method="post">
         <div class="form-group">
-            <label>Hall Ticket Number</label>
-            <input type="text" name="voter_id" placeholder="e.g., 24V11A0501" required 
-                   pattern="24V11A05[0-7][0-9]|24V11A0580" title="Valid JNTU-GV Hall Ticket Required">
+            <label for="voter_id">Hall Ticket Number</label>
+            <input type="text" id="voter_id" name="voter_id" placeholder="e.g., 24V11A0501" required>
         </div>
 
         <div class="form-group">
-            <label>Select Candidate</label>
-            <select name="candidate" required>
-                <option value="" disabled selected>Choose a candidate...</option>
+            <label for="candidate">Choose Your Candidate</label>
+            <select id="candidate" name="candidate" required>
+                <option value="" disabled selected>Select candidate from list</option>
                 {% for c in config.candidates %}
                 <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        <button type="submit" class="btn-vote">Confirm Secure Vote</button>
+        <button type="submit" id="voteBtn" class="btn-vote">Confirm Secure Vote</button>
     </form>
-    {% elif status == 'waiting' %}
-    <div style="padding: 20px; color: var(--primary); font-weight: 700;">
-        Election starts at {{ config.start.strftime('%H:%M') }} IST
-    </div>
+    {% elif status == "waiting" %}
+        <div style="background: #fffaf0; padding: 15px; border-radius: 10px; color: #9c4221; font-weight: 600;">
+            Voting starts at {{ config.start.strftime('%H:%M IST') }}
+        </div>
     {% else %}
-    <div style="padding: 20px; color: var(--danger); font-weight: 700; background: #fff1f2; border-radius: 12px;">
-        🛑 Voting is officially closed.
-    </div>
+        <div style="background: #fff5f5; padding: 15px; border-radius: 10px; color: #c53030; font-weight: 600;">
+            Election is officially closed.
+        </div>
     {% endif %}
 
-    <div class="footer-info">
-        Verified for JNTU-GV Students<br>
-        Range: 24V11A0501 — 24V11A0580<br>
+    <div class="footer">
+        Authorized Range: <span style="font-weight: bold; color: #4a5568;">24V11A0501 — 24V11A0580</span> <br>
         <a href="/audit" class="audit-link">Verify Your Vote Receipt</a>
     </div>
 </div>
 
 <script>
-    // Countdown Timer Logic
-    const endTime = {{ end_ms }};
+    // Corrected Dynamic Timer Logic
+    const endTime = {{ end_ms if end_ms else 0 }};
     
-    function updateTimer() {
-        const now = new Date().getTime();
-        const distance = endTime - now;
+    if (endTime > 0) {
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
 
-        if (distance < 0) {
-            document.getElementById("timer").innerHTML = "CLOSED";
-            if(document.querySelector('.btn-vote')) {
-                window.location.reload(); // Refresh to show 'Closed' status
+            if (distance < 0) {
+                document.getElementById("timer").innerHTML = "CLOSED";
+                if(document.getElementById("voteBtn")) {
+                    document.getElementById("voteBtn").disabled = true;
+                    document.getElementById("voteBtn").innerText = "Election Ended";
+                }
+                return;
             }
-            return;
+
+            // Calculate hours, minutes, and seconds from end_ms
+            const h = Math.floor(distance / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Update display
+            document.getElementById("timer").innerHTML = 
+                (h < 10 ? "0" + h : h) + "h " + 
+                (m < 10 ? "0" + m : m) + "m " + 
+                (s < 10 ? "0" + s : s) + "s";
         }
 
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        document.getElementById("timer").innerHTML = 
-            (hours < 10 ? "0" + hours : hours) + "h " + 
-            (minutes < 10 ? "0" + minutes : minutes) + "m " + 
-            (seconds < 10 ? "0" + seconds : seconds) + "s";
+        setInterval(updateTimer, 1000);
+        updateTimer();
     }
-
-    setInterval(updateTimer, 1000);
-    updateTimer();
 </script>
 
 </body>

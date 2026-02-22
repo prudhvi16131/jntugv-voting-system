@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for
 from blockchain import Blockchain
 from datetime import datetime
 import time
@@ -11,23 +11,23 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# Initial election settings. Start and end times can be updated via Dashboard
+# Default election window and candidates
 voting_config = {
-    "start": datetime(2026, 2, 21, 9, 0),
-    "end": datetime(2026, 2, 21, 15, 0),
+    "start": datetime(2026, 2, 22, 9, 0),
+    "end": datetime(2026, 2, 22, 15, 0),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# JNTU-GV Authorized Voter Range: 24V11A0501 to 24V11A0580
+# JNTU-GV Authorized Student Hall Ticket Range
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
-    """Writes the chain to a JSON file to prevent data loss on Render restarts."""
+    """Saves the current blockchain state to a file for persistent storage on Render."""
     chain_data = [block.__dict__ for block in voting_blockchain.chain]
     with open(STORAGE_FILE, 'w') as f:
         json.dump(chain_data, f)
@@ -37,9 +37,11 @@ def save_blockchain():
 def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
+    
+    # CRITICAL: Convert end time to milliseconds for the JavaScript timer
     end_ms = int(voting_config["end"].timestamp() * 1000)
     
-    # Check election window status
+    # Determine election status
     if now < voting_config["start"]:
         status = "waiting"
     elif now > voting_config["end"]:
@@ -57,16 +59,15 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP NULLIFIER: Cryptographic proof of ID without storing sensitive data
+    # ZKP NULLIFIER: Ensures voter privacy and prevents double-voting
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
-    # Integrity check: Prevent double-voting
+    # Check for existing votes with the same nullifier
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Digital receipt for audit verification
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -78,7 +79,7 @@ def cast_vote():
     
     voting_blockchain.add_new_transaction(vote_data)
     voting_blockchain.mine()
-    save_blockchain() # Save to persistent file
+    save_blockchain() # Persist data
     
     return render_template('success.html', receipt=receipt)
 
@@ -101,7 +102,7 @@ def audit():
                     break
     return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
 
-# --- 5. ADMIN DASHBOARD & DYNAMIC MANAGEMENT ---
+# --- 5. ADMIN DASHBOARD & MANAGEMENT ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -121,7 +122,7 @@ def admin_results():
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    """Handles dynamic candidate and symbol updates."""
+    """Updates candidate names and symbols dynamically."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
     updated_list = []
@@ -133,7 +134,7 @@ def update_candidates():
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Restores manual control over the Start and End time dropdowns."""
+    """Updates the election start and end times."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
@@ -142,7 +143,7 @@ def update_time():
 
 @app.route('/stop-early', methods=['POST'])
 def stop_early():
-    """Instant stop clock option."""
+    """Instant stop clock option to end election immediately."""
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None)
     voting_config["end"] = now
@@ -155,11 +156,6 @@ def reset_election():
     if os.path.exists(STORAGE_FILE):
         os.remove(STORAGE_FILE)
     return redirect('/admin-results/JNTUGV_SECRET')
-
-@app.route('/ledger')
-def ledger():
-    chain_data = [block.__dict__ for block in voting_blockchain.chain]
-    return render_template('ledger.html', chain=chain_data)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
