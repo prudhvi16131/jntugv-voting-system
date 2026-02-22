@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Admin Portal</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --accent: #8b5cf6; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .admin-header { text-align: center; margin-bottom: 2rem; }
+        .container { max-width: 900px; margin: 0 auto; }
         
+        /* Dashboard Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
+
         .admin-card { background: white; border-radius: 24px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 1px solid #eef2f6; }
         h3 { margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; color: #334155; }
 
@@ -18,28 +22,44 @@
         label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; }
         input { padding: 0.85rem; border: 2px solid #e2e8f0; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; }
 
-        .btn { padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 1rem; display: block; text-align: center; text-decoration: none; width: 100%; }
-        .btn-add { background: var(--accent); color: white; margin-bottom: 12px; }
-        .btn-sync { background: var(--success); color: white; font-weight: 800; }
+        .btn { padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; transition: 0.2s; }
+        .btn-sync { background: var(--success); color: white; margin-top: 10px; }
         .btn-time { background: var(--primary); color: white; margin-bottom: 10px; }
+        
+        /* Restored Stop Clock Button */
+        .btn-stop { background: #f59e0b; color: white; margin-top: 10px; font-weight: 800; }
         .btn-danger { background: var(--danger); color: white; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td, th { padding: 1.2rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
-        th { color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-        .badge-violation { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1.2rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        .badge-red { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="admin-header">
+    <div style="text-align: center; margin-bottom: 2rem;">
         <h1>JNTU-GV Admin Dashboard</h1>
-        <p style="color: #64748b; font-weight: 500;">Blockchain Electoral Control & Security Logs</p>
+        <p style="color: #64748b; font-weight: 500;">Blockchain Electoral Control & Analytics</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-label">Leading Candidate</div>
+            <div class="stat-value">{{ winner }}</div>
+        </div>
+        <div class="stat-box" style="border-left-color: var(--accent);">
+            <div class="stat-label">Voter Turnout</div>
+            <div class="stat-value" style="color: var(--accent);">{{ turnout }}%</div>
+        </div>
+        <div class="stat-box" style="border-left-color: var(--success);">
+            <div class="stat-label">System Integrity</div>
+            <div class="stat-value" style="color: var(--success); font-size: 1.1rem;">Merkle Root Active</div>
+        </div>
     </div>
 
     <div class="admin-card">
-        <h3>Election Candidate Management</h3>
+        <h3>Candidate & Symbol Management</h3>
         <form action="/update-candidates" method="post">
             <div id="candidateList">
                 {% for c in config.candidates %}
@@ -55,13 +75,13 @@
                 </div>
                 {% endfor %}
             </div>
-            <button type="button" onclick="addCandidateRow()" class="btn btn-add">+ Add New Candidate Row</button>
-            <button type="submit" class="btn btn-sync">Synchronize & Save Election List</button>
+            <button type="button" onclick="addCandidateRow()" class="btn" style="background:var(--accent); color:white; margin-bottom:10px;">+ Add New Candidate Row</button>
+            <button type="submit" class="btn btn-sync">Synchronize Election List</button>
         </form>
     </div>
 
     <div class="admin-card" style="border-left: 6px solid #f59e0b;">
-        <h3 style="color: #92400e;">⚠️ Security Alerts (Unauthorized & Double Voting)</h3>
+        <h3 style="color: #92400e;">⚠️ Security Alerts (Double Voting / Unauthorized)</h3>
         <table>
             <thead>
                 <tr style="background: #fffbeb;">
@@ -73,14 +93,12 @@
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td style="font-weight: 800; color: #1e293b;">{{ log.id }}</td>
+                    <td style="font-weight: 800;">{{ log.id }}</td>
                     <td>{{ log.time }}</td>
-                    <td><span class="badge-violation">{{ log.reason }}</span></td>
+                    <td><span class="badge-red">{{ log.reason }}</span></td>
                 </tr>
                 {% else %}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">No security threats detected.</td>
-                </tr>
+                <tr><td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8;">No security threats detected.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -101,58 +119,31 @@
             </div>
             <button type="submit" class="btn btn-time">Update Election Window</button>
         </form>
-    </div>
 
-    <div class="admin-card">
-        <h3>Live Standings Visualization</h3>
-        <div style="height: 300px;"><canvas id="resultsChart"></canvas></div>
+        <form action="/stop-early" method="post">
+            <button type="submit" class="btn btn-stop">🛑 Stop Clock & End Election Now</button>
+        </form>
     </div>
 
     <div class="admin-card" style="border-left: 6px solid var(--danger); background: #fffafb;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
-        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: This will wipe all blockchain data and logs. Proceed?');">
+        <form action="/reset-election" method="post" onsubmit="return confirm('Wipe all data?');">
             <button type="submit" class="btn btn-danger">Wipe All Election Data</button>
         </form>
     </div>
 </div>
 
 <script>
-    // DYNAMIC ROW ADDER
     function addCandidateRow() {
         const container = document.getElementById('candidateList');
         const div = document.createElement('div');
         div.className = 'input-row';
         div.innerHTML = `
-            <div style="flex: 2;">
-                <label>Candidate Name</label>
-                <input type="text" name="c_name" placeholder="New Candidate">
-            </div>
-            <div style="flex: 1;">
-                <label>Symbol</label>
-                <input type="text" name="c_symbol" placeholder="Symbol" style="text-align: center;">
-            </div>
+            <div style="flex: 2;"><label>Candidate Name</label><input type="text" name="c_name"></div>
+            <div style="flex: 1;"><label>Symbol</label><input type="text" name="c_symbol" style="text-align: center;"></div>
         `;
         container.appendChild(div);
     }
-
-    // RESULTS CHART
-    const ctx = document.getElementById('resultsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: [{% for name in tally.keys() %}"{{ name }}",{% endfor %}],
-            datasets: [{
-                data: [{% for count in tally.values() %}{{ count }},{% endfor %}],
-                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
-                borderWidth: 0
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
 </script>
 </body>
 </html>
