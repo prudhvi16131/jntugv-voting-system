@@ -3,68 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Secure Voting</title>
+    <title>JNTU-GV | Blockchain Voting</title>
     <style>
-        :root { --primary: #0062ff; --bg: #f0f4f8; --danger: #e53e3e; }
+        :root { 
+            --primary: #0062ff; 
+            --bg: #f3f4f6; 
+            --danger: #ef4444; 
+            --card-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
         body { 
-            font-family: 'Inter', system-ui, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            display: flex; justify-content: center; align-items: center; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: #e5e7eb; 
+            background-image: radial-gradient(#4f46e5 0.5px, #e5e7eb 0.5px);
+            background-size: 20px 20px;
+            display: flex; flex-direction: column; align-items: center; 
             min-height: 100vh; margin: 0; 
         }
+        .navbar { 
+            width: 100%; background: #ffffff; padding: 1.2rem 0; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; margin-bottom: 2.5rem;
+            border-bottom: 4px solid var(--primary);
+        }
+        .navbar h1 { margin: 0; font-size: 1.1rem; color: #1e293b; letter-spacing: 1px; font-weight: 800; }
+        
         .card { 
-            background: white; padding: 2.5rem; border-radius: 20px; 
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); 
-            width: 90%; max-width: 420px; text-align: center;
+            background: rgba(255, 255, 255, 0.98); padding: 2.5rem; border-radius: 28px; 
+            box-shadow: var(--card-shadow); 
+            width: 90%; max-width: 420px; text-align: center; border: 1px solid #ffffff;
         }
+        
         #timer-container {
-            background: #fff5f5; padding: 15px; border-radius: 12px;
-            margin: 20px 0; border: 1px solid #fed7d7;
+            background: #fef2f2; padding: 18px; border-radius: 18px;
+            margin: 22px 0; border: 1px solid #fee2e2;
         }
-        #timer { font-weight: 800; color: var(--danger); font-size: 1.5rem; display: block; }
-        .timer-label { font-size: 0.75rem; color: #c53030; font-weight: 700; text-transform: uppercase; }
+        #timer { 
+            font-weight: 800; color: var(--danger); font-size: 1.8rem; 
+            font-family: 'Monaco', 'Courier New', monospace; letter-spacing: 1px;
+        }
+        .timer-label { font-size: 0.7rem; color: #991b1b; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 5px; }
+
         .form-group { text-align: left; margin-bottom: 1.5rem; }
-        label { display: block; font-weight: 600; margin-bottom: 0.6rem; color: #4a5568; }
+        label { display: block; font-weight: 700; font-size: 0.75rem; color: #475569; margin-bottom: 8px; text-transform: uppercase; }
         input, select { 
-            width: 100%; padding: 0.85rem; border: 2px solid #e2e8f0; 
-            border-radius: 12px; font-size: 1rem; box-sizing: border-box;
+            width: 100%; padding: 1rem; border: 2px solid #e2e8f0; 
+            border-radius: 14px; font-size: 1rem; box-sizing: border-box;
+            transition: border-color 0.2s;
         }
+        input:focus { border-color: var(--primary); outline: none; }
+
         .btn-vote { 
-            background: var(--primary); color: white; border: none; 
-            padding: 1.1rem; width: 100%; border-radius: 12px; 
-            font-weight: 700; font-size: 1.1rem; cursor: pointer; 
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+            color: white; border: none; padding: 1.2rem; width: 100%; 
+            border-radius: 15px; font-weight: 800; font-size: 1.1rem; 
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
         }
+        .btn-vote:active { transform: scale(0.97); }
         .btn-vote:disabled { background: #cbd5e0; cursor: not-allowed; }
+
         .audit-link { 
-            margin-top: 15px; display: block; 
-            color: var(--primary); font-size: 0.9rem; 
-            text-decoration: none; font-weight: 600; 
+            margin-top: 25px; display: inline-block; 
+            color: var(--primary); text-decoration: none; 
+            font-weight: 700; font-size: 0.9rem; border-bottom: 2px solid transparent;
+            transition: border-color 0.2s;
         }
+        .audit-link:hover { border-color: var(--primary); }
+
+        .footer-info { margin-top: 2.5rem; font-size: 0.75rem; color: #64748b; font-weight: 500; }
     </style>
 </head>
 <body>
 
+<div class="navbar">
+    <h1>JAWAHARLAL NEHRU TECHNOLOGICAL UNIVERSITY GURAJADA VIZIANAGARAM</h1>
+</div>
+
 <div class="card">
-    <div class="header">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
-        <h2 style="margin:0;">JNTU-GV E-Voting</h2>
-        <p style="color: #718096; font-size: 0.9rem;">Blockchain-Secured Student Election</p>
-        
-        <div id="timer-container">
-            <span class="timer-label">Time Remaining in Window:</span>
-            <span id="timer">Loading...</span>
-        </div>
+    <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🛡️</div>
+    <h2 style="margin:0; color: #1e293b; font-size: 1.6rem;">Student E-Voting</h2>
+    <p style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">Secured by Lightweight Blockchain Framework</p>
+    
+    <div id="timer-container">
+        <span class="timer-label">Election Window Closing In:</span>
+        <div id="timer">--h --m --s</div>
     </div>
 
     {% if status == "live" %}
     <form action="/cast_vote" method="post">
         <div class="form-group">
             <label>Hall Ticket Number</label>
-            <input type="text" name="voter_id" placeholder="e.g., 24V11A0501" required>
+            <input type="text" name="voter_id" placeholder="e.g., 24V11A0522" required>
         </div>
 
         <div class="form-group">
-            <label>Choose Your Candidate</label>
+            <label>Select Your Candidate</label>
             <select name="candidate" required>
                 <option value="" disabled selected>Select from list</option>
                 {% for c in config.candidates %}
@@ -73,33 +104,34 @@
             </select>
         </div>
 
-        <button type="submit" id="voteBtn" class="btn-vote">Confirm Secure Vote</button>
+        <button type="submit" id="voteBtn" class="btn-vote">Cast Secure Vote</button>
     </form>
     {% elif status == "waiting" %}
-        <div style="background: #fffaf0; padding: 15px; border-radius: 10px; color: #9c4221; font-weight: 600;">
-            Voting has not started yet.
+        <div style="background: #fffaf0; padding: 20px; border-radius: 15px; color: #9c4221; font-weight: 700; border: 1px solid #feebc8;">
+            VOTING HAS NOT STARTED YET
         </div>
     {% else %}
-        <div style="background: #fff5f5; padding: 15px; border-radius: 10px; color: #c53030; font-weight: 600;">
-            Election Window Closed.
+        <div style="background: #f1f5f9; padding: 20px; border-radius: 15px; color: #475569; font-weight: 700; border: 1px solid #e2e8f0;">
+            ELECTION PORTAL CLOSED
         </div>
     {% endif %}
 
     <a href="/audit" class="audit-link">🔍 Verify Your Vote Receipt</a>
 
-    <div style="margin-top: 2rem; font-size: 0.8rem; color: #a0aec0;">
-        Authorized Range: 24V11A0501 — 24V11A0580
+    <div class="footer-info">
+        Authorized ID Range: 24V11A0501 — 24V11A0580
     </div>
 </div>
 
 <script>
-    // Uses remaining seconds from server logic
+    // Logic: Pulls exact seconds remaining from Flask backend
     let timeLeft = {{ remaining_s | int }};
 
     function updateDisplay() {
         if (timeLeft <= 0) {
             document.getElementById("timer").innerHTML = "00h 00m 00s";
-            if(document.getElementById("voteBtn")) document.getElementById("voteBtn").disabled = true;
+            const btn = document.getElementById("voteBtn");
+            if(btn) btn.disabled = true;
             return;
         }
 
