@@ -11,17 +11,17 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# These are your default settings. Use the Admin Page to change them.
+# Default settings can be overwritten via the Admin Dashboard
 voting_config = {
-    "start": datetime(2026, 2, 22, 9, 0),
-    "end": datetime(2026, 2, 22, 15, 0),
+    "start": datetime(2026, 2, 22, 11, 25),
+    "end": datetime(2026, 2, 22, 11, 41),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# JNTU-GV Student Range
+# JNTU-GV Authorized Range
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
@@ -36,14 +36,12 @@ def save_blockchain():
 @app.route('/')
 def index():
     IST = pytz.timezone('Asia/Kolkata')
-    # Get the current time in IST right now
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # Calculate exactly how many seconds are left based on YOUR set End Time
-    # This calculation is the key to fixing your "05h 35m" error.
+    # CALCULATE REMAINING SECONDS:
+    # This forces the countdown to follow your Admin Page settings
     remaining_seconds = int((voting_config["end"] - now).total_seconds())
     
-    # Status determination
     if now < voting_config["start"]:
         status = "waiting"
     elif now > voting_config["end"]:
@@ -65,7 +63,7 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP NULLIFIER: Privacy + Double-vote protection
+    # ZKP NULLIFIER for privacy and double-vote protection
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
     for block in voting_blockchain.chain:
@@ -88,7 +86,7 @@ def cast_vote():
     
     return render_template('success.html', receipt=receipt)
 
-# --- 4. ADMIN DASHBOARD & TIME MANAGEMENT ---
+# --- 4. ADMIN DASHBOARD & MANAGEMENT ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -106,9 +104,22 @@ def admin_results():
     return render_template('results.html', tally=tally, winner=winner, 
                            config=voting_config, turnout=turnout, total=total_votes)
 
+# FIX: Added this specific route to stop the "Not Found" error
+@app.route('/update-candidates', methods=['POST'])
+def update_candidates():
+    """Handles dynamic candidate and symbol updates."""
+    names = request.form.getlist('c_name')
+    symbols = request.form.getlist('c_symbol')
+    updated_list = []
+    for n, s in zip(names, symbols):
+        if n.strip():
+            updated_list.append({"name": n.strip(), "symbol": s.strip()})
+    voting_config["candidates"] = updated_list
+    return redirect('/admin-results/JNTUGV_SECRET')
+
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Updates the election window manually from the admin page."""
+    """Updates the election window manually."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
@@ -117,7 +128,7 @@ def update_time():
 
 @app.route('/stop-early', methods=['POST'])
 def stop_early():
-    """Emergency button to end election immediately."""
+    """Ends election instantly."""
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None)
     voting_config["end"] = now

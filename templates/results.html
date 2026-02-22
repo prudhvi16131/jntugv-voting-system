@@ -11,33 +11,26 @@
         .container { max-width: 900px; margin: 0 auto; }
         .admin-header { text-align: center; margin-bottom: 2rem; }
         
-        /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-box { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
         .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
         .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
 
-        .admin-card { background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .admin-card { background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
         h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
 
-        /* Candidate Management Layout */
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
         input { padding: 0.85rem; border: 2px solid #e2e8f0; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; }
         label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block; }
 
-        .btn { padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 1rem; }
-        .btn-sync { background: var(--success); color: white; width: 100%; margin-top: 10px; }
-        .btn-add { background: #e0ebff; color: #0062ff; width: auto; margin-bottom: 20px; }
-        .btn-print { background: #475569; color: white; width: 100%; margin-top: 15px; }
+        .btn { padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 1rem; display: block; text-align: center; text-decoration: none; }
+        .btn-sync { background: var(--success); color: white; width: 100%; }
+        .btn-time { background: var(--primary); color: white; width: 100%; margin-bottom: 10px; }
+        .btn-stop { background: #f59e0b; color: white; width: 100%; }
         .btn-danger { background: var(--danger); color: white; width: 100%; }
 
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
-
-        @media print {
-            .no-print, .btn, .nav-links, .admin-card:has(form) { display: none !important; }
-            .admin-card { box-shadow: none; border: 1px solid #eee; }
-        }
     </style>
 </head>
 <body>
@@ -65,29 +58,16 @@
 
     <div class="admin-card">
         <h3>Candidate & Symbol Management</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Edit names and symbols (🦁, 🐘, etc.) below:</p>
-        
-        <form action="/update-candidates" method="post" id="candidateForm">
+        <form action="/update-candidates" method="post">
             <div id="candidateList">
                 {% for c in config.candidates %}
                 <div class="input-row">
-                    <div style="flex: 2;">
-                        <input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name">
-                    </div>
-                    <div style="flex: 1;">
-                        <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" style="text-align: center;">
-                    </div>
+                    <div style="flex: 2;"><input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name"></div>
+                    <div style="flex: 1;"><input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol"></div>
                 </div>
                 {% endfor %}
             </div>
-
-            <button type="button" onclick="addCandidateRow()" class="btn btn-add">
-                + Add New Candidate
-            </button>
-
-            <button type="submit" class="btn btn-sync">
-                Synchronize Election List
-            </button>
+            <button type="submit" class="btn btn-sync">Synchronize Election List</button>
         </form>
     </div>
 
@@ -104,22 +84,18 @@
                     <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}">
                 </div>
             </div>
-            <button type="submit" class="btn" style="background: var(--primary); color: white; width: 100%; margin-bottom: 10px;">
-                Save New Timing
-            </button>
+            <button type="submit" class="btn btn-time">Save New Timing</button>
         </form>
 
         <form action="/stop-early" method="post">
-            <button type="submit" class="btn" style="background: #f59e0b; color: white; width: 100%;">
-                🛑 Stop Clock & End Election Now
-            </button>
+            <button type="submit" class="btn btn-stop">🛑 Stop Clock & End Election Now</button>
         </form>
     </div>
 
     <div class="admin-card">
         <h3>Live Standings Visualization</h3>
         <div style="height: 300px;"><canvas id="resultsChart"></canvas></div>
-        <button onclick="window.print()" class="btn btn-print">📄 Export Official Audit Report (PDF)</button>
+        <button onclick="window.print()" class="btn" style="background: #475569; color: white; width: 100%; margin-top: 20px;">📄 Export Official Audit Report (PDF)</button>
     </div>
 
     <div class="admin-card">
@@ -145,18 +121,6 @@
 </div>
 
 <script>
-    function addCandidateRow() {
-        const container = document.getElementById('candidateList');
-        const row = document.createElement('div');
-        row.className = 'input-row';
-        row.style.marginBottom = '15px';
-        row.innerHTML = `
-            <div style="flex: 2;"><input type="text" name="c_name" placeholder="Candidate Name"></div>
-            <div style="flex: 1;"><input type="text" name="c_symbol" placeholder="Symbol" style="text-align: center;"></div>
-        `;
-        container.appendChild(row);
-    }
-
     const ctx = document.getElementById('resultsChart').getContext('2d');
     new Chart(ctx, {
         type: 'pie',
