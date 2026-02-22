@@ -11,17 +11,17 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# These values synchronize with your index.html timer
+# These values are updated via the Admin Dashboard
 voting_config = {
-    "start": datetime(2026, 2, 22, 12, 45),
-    "end": datetime(2026, 2, 22, 13, 0),
+    "start": datetime(2026, 2, 22, 13, 0),
+    "end": datetime(2026, 2, 22, 14, 0),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
     ]
 }
 
-# JNTU-GV Authorized Student Range
+# JNTU-GV Authorized Student Range (24V11A0501 - 24V11A0580)
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
 
@@ -38,7 +38,7 @@ def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # Calculates exact seconds remaining for the frontend timer
+    # Duration-sync: Calculates exact seconds left for the frontend timer
     remaining_seconds = int((voting_config["end"] - now).total_seconds())
     
     if now < voting_config["start"]:
@@ -89,7 +89,7 @@ def cast_vote():
 # --- 4. PUBLIC AUDIT INTERFACE ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit():
-    """Retrieves vote records from the blockchain using a receipt code."""
+    """Searches the blockchain for a specific receipt code."""
     search_result = None
     receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
     
@@ -125,19 +125,22 @@ def admin_results():
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    """Handles dynamic candidate list updates from the admin dashboard."""
+    """Handles editable and dynamic candidate list updates."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
     updated_list = []
     for n, s in zip(names, symbols):
         if n.strip():
-            updated_list.append({"name": n.strip(), "symbol": s.strip()})
+            updated_list.append({
+                "name": n.strip(), 
+                "symbol": s.strip() if s.strip() else "🗳️"
+            })
     voting_config["candidates"] = updated_list
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Synchronizes server election window with user-defined timings."""
+    """Syncs election window with IST timings provided by admin."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
@@ -160,6 +163,6 @@ def reset_election():
     return redirect('/admin-results/JNTUGV_SECRET')
 
 if __name__ == '__main__':
-    # Binds to Render's dynamic port
+    # Binds to Render's environment port for deployment
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)

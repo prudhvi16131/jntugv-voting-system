@@ -7,39 +7,42 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --accent: #8b5cf6; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
         .container { max-width: 900px; margin: 0 auto; }
         .admin-header { text-align: center; margin-bottom: 2rem; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-box { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
-        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 5px; }
 
-        .admin-card { background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
-        h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
+        .admin-card { background: white; border-radius: 24px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 1px solid #eef2f6; }
+        h3 { margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; color: #334155; }
 
-        .input-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
-        input { padding: 0.85rem; border: 2px solid #e2e8f0; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; }
-        label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .input-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
+        label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        input { padding: 0.85rem; border: 2px solid #e2e8f0; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; transition: border-color 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; }
 
         .btn { padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 1rem; display: block; text-align: center; text-decoration: none; }
-        .btn-sync { background: var(--success); color: white; width: 100%; }
         .btn-add { background: var(--accent); color: white; width: 100%; margin-bottom: 12px; }
+        .btn-sync { background: var(--success); color: white; width: 100%; font-weight: 800; }
         .btn-time { background: var(--primary); color: white; width: 100%; margin-bottom: 10px; }
         .btn-stop { background: #f59e0b; color: white; width: 100%; }
         .btn-danger { background: var(--danger); color: white; width: 100%; }
+        .btn:active { transform: scale(0.98); }
 
         table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        td, th { padding: 1.2rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        th { color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="admin-header">
-        <h1>JNTU-GV Admin Dashboard</h1>
-        <p style="color: #64748b;">Blockchain Electoral Control & Analytics</p>
+        <h1 style="margin-bottom: 5px;">JNTU-GV Admin Dashboard</h1>
+        <p style="color: #64748b; font-weight: 500;">Blockchain Electoral Control & Real-time Analytics</p>
     </div>
     
     <div class="stats-grid">
@@ -58,19 +61,25 @@
     </div>
 
     <div class="admin-card">
-        <h3>Candidate & Symbol Management</h3>
+        <h3>Election Candidate Management</h3>
         <form action="/update-candidates" method="post">
             <div id="candidateList">
                 {% for c in config.candidates %}
                 <div class="input-row">
-                    <div style="flex: 2;"><input type="text" name="c_name" value="{{ c.name }}" placeholder="Candidate Name"></div>
-                    <div style="flex: 1;"><input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol"></div>
+                    <div style="flex: 2;">
+                        <label>Candidate Name</label>
+                        <input type="text" name="c_name" value="{{ c.name }}" placeholder="Enter Name">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Symbol</label>
+                        <input type="text" name="c_symbol" value="{{ c.symbol }}" placeholder="Symbol" style="text-align: center;">
+                    </div>
                 </div>
                 {% endfor %}
             </div>
             
-            <button type="button" onclick="addCandidateRow()" class="btn btn-add">+ Add New Candidate</button>
-            <button type="submit" class="btn btn-sync">Synchronize Election List</button>
+            <button type="button" onclick="addCandidateRow()" class="btn btn-add">+ Add New Candidate Row</button>
+            <button type="submit" class="btn btn-sync">Synchronize & Save Election List</button>
         </form>
     </div>
 
@@ -87,7 +96,7 @@
                     <input type="datetime-local" name="end_time" value="{{ config.end.strftime('%Y-%m-%dT%H:%M') }}">
                 </div>
             </div>
-            <button type="submit" class="btn btn-time">Save New Timing</button>
+            <button type="submit" class="btn btn-time">Update Election Window</button>
         </form>
 
         <form action="/stop-early" method="post">
@@ -103,49 +112,60 @@
     <div class="admin-card">
         <h3>Blockchain Vote Tally</h3>
         <table>
-            <thead><tr><th>Candidate</th><th>Total Votes</th></tr></thead>
+            <thead><tr><th>Candidate</th><th>Total Validated Votes</th></tr></thead>
             <tbody>
                 {% for name, count in tally.items() %}
-                <tr><td>{{ name }}</td><td><strong>{{ count }}</strong></td></tr>
+                <tr><td><strong>{{ name }}</strong></td><td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-weight: 800;">{{ count }}</span></td></tr>
                 {% else %}
-                <tr><td colspan="2" style="text-align: center; color: #94a3b8;">Waiting for mined blocks...</td></tr>
+                <tr><td colspan="2" style="text-align: center; color: #94a3b8; padding: 40px;">Waiting for mined blocks...</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <div class="admin-card" style="border-left: 5px solid var(--danger); background: #fef2f2;">
+    <div class="admin-card" style="border-left: 6px solid var(--danger); background: #fffafb;">
         <h3 style="color: #991b1b;">Danger Zone</h3>
-        <form action="/reset-election" method="post" onsubmit="return confirm('Wipe all data?');">
-            <button type="submit" class="btn btn-danger">Wipe Election Data</button>
+        <form action="/reset-election" method="post" onsubmit="return confirm('WARNING: This will wipe all blockchain data and reset the election. Proceed?');">
+            <button type="submit" class="btn btn-danger">Wipe All Election Data</button>
         </form>
     </div>
 </div>
 
 <script>
-    // DYNAMIC ROW ADDER
+    // DYNAMIC ROW ADDER FUNCTION
     function addCandidateRow() {
         const container = document.getElementById('candidateList');
         const div = document.createElement('div');
         div.className = 'input-row';
         div.innerHTML = `
-            <div style="flex: 2;"><input type="text" name="c_name" placeholder="Candidate Name"></div>
-            <div style="flex: 1;"><input type="text" name="c_symbol" placeholder="Symbol"></div>
+            <div style="flex: 2;">
+                <label>Candidate Name</label>
+                <input type="text" name="c_name" placeholder="New Candidate">
+            </div>
+            <div style="flex: 1;">
+                <label>Symbol</label>
+                <input type="text" name="c_symbol" placeholder="Symbol" style="text-align: center;">
+            </div>
         `;
         container.appendChild(div);
     }
 
     const ctx = document.getElementById('resultsChart').getContext('2d');
     new Chart(ctx, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: [{% for name in tally.keys() %}"{{ name }}",{% endfor %}],
             datasets: [{
                 data: [{% for count in tally.values() %}{{ count }},{% endfor %}],
-                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                borderWidth: 0
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
     });
 </script>
 </body>
