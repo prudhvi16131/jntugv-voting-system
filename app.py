@@ -10,8 +10,8 @@ import json
 app = Flask(__name__)
 voting_blockchain = Blockchain()
 
-# --- 1. CONFIGURATION ---
-# These values are updated via the Admin Dashboard
+# --- 1. CONFIGURATION & SECURITY LOGS ---
+# Election window and candidates managed via Admin Dashboard
 voting_config = {
     "start": datetime(2026, 2, 22, 13, 0),
     "end": datetime(2026, 2, 22, 14, 0),
@@ -21,9 +21,12 @@ voting_config = {
     ]
 }
 
-# JNTU-GV Authorized Student Range (24V11A0501 - 24V11A0580)
+# Authorized JNTU-GV Student Hall Ticket Range
 AUTHORIZED_VOTERS = [f"24V11A05{str(i).zfill(2)}" for i in range(1, 81)]
 STORAGE_FILE = 'blockchain_storage.json'
+
+# Stores unauthorized entry and double-voting attempts
+security_logs = []
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
@@ -38,7 +41,7 @@ def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # Duration-sync: Calculates exact seconds left for the frontend timer
+    # Calculates exact seconds remaining for the frontend countdown
     remaining_seconds = int((voting_config["end"] - now).total_seconds())
     
     if now < voting_config["start"]:
@@ -52,25 +55,31 @@ def index():
     return render_template('index.html', 
                            config=voting_config, 
                            status=status, 
-                           remaining_s=remaining_seconds)
+                           remaining_s=max(0, remaining_seconds))
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
-    voter_id = request.form.get('voter_id')
+    voter_id = request.form.get('voter_id').strip().upper()
     candidate = request.form.get('candidate')
+    IST = pytz.timezone('Asia/Kolkata')
+    log_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
 
+    # Security: Check for unauthorized Hall Ticket
     if voter_id not in AUTHORIZED_VOTERS:
+        security_logs.append({"id": voter_id, "time": log_time, "reason": "Unauthorized ID"})
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # SHA-256 Nullifier to ensure one vote per student
+    # Cryptographic Nullifier to prevent double-voting
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
+    # Security: Detect Double Voting (e.g., 24V11A0522)
     for block in voting_blockchain.chain:
         for tx in block.transactions:
             if tx.get('nullifier') == nullifier:
+                security_logs.append({"id": voter_id, "time": log_time, "reason": "Double Voting Attempt"})
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
-    # Generate 10-character unique receipt for the Audit page
+    # Generate unique 10-character receipt for public audit
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -89,7 +98,7 @@ def cast_vote():
 # --- 4. PUBLIC AUDIT INTERFACE ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit():
-    """Searches the blockchain for a specific receipt code."""
+    """Allows students to verify their vote using their receipt."""
     search_result = None
     receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
     
@@ -112,57 +121,44 @@ def admin_results():
     total_votes = 0
     for block in voting_blockchain.chain[1:]:
         for tx in block.transactions:
-            candidate = tx.get('candidate')
-            if candidate:
-                tally[candidate] = tally.get(candidate, 0) + 1
-                total_votes += 1
+            c = tx.get('candidate')
+            tally[c] = tally.get(c, 0) + 1
+            total_votes += 1
     
     turnout = round((total_votes / len(AUTHORIZED_VOTERS)) * 100, 1) if AUTHORIZED_VOTERS else 0
     winner = max(tally, key=tally.get) if tally else "No votes yet"
     
-    return render_template('results.html', tally=tally, winner=winner, 
-                           config=voting_config, turnout=turnout, total=total_votes)
+    return render_template('results.html', 
+                           tally=tally, 
+                           winner=winner, 
+                           config=voting_config, 
+                           turnout=turnout, 
+                           logs=security_logs)
 
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    """Handles editable and dynamic candidate list updates."""
+    """Handles editable candidate list from the dashboard."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
-    updated_list = []
-    for n, s in zip(names, symbols):
-        if n.strip():
-            updated_list.append({
-                "name": n.strip(), 
-                "symbol": s.strip() if s.strip() else "🗳️"
-            })
-    voting_config["candidates"] = updated_list
+    voting_config["candidates"] = [{"name": n.strip(), "symbol": s.strip() or "🗳️"} 
+                                   for n, s in zip(names, symbols) if n.strip()]
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Syncs election window with IST timings provided by admin."""
-    new_start = request.form.get('start_time')
-    new_end = request.form.get('end_time')
-    voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
-    voting_config["end"] = datetime.strptime(new_end, '%Y-%m-%dT%H:%M')
-    return redirect('/admin-results/JNTUGV_SECRET')
-
-@app.route('/stop-early', methods=['POST'])
-def stop_early():
-    IST = pytz.timezone('Asia/Kolkata')
-    now = datetime.now(IST).replace(tzinfo=None)
-    voting_config["end"] = now
+    """Syncs election timings with IST inputs."""
+    voting_config["start"] = datetime.strptime(request.form.get('start_time'), '%Y-%m-%dT%H:%M')
+    voting_config["end"] = datetime.strptime(request.form.get('end_time'), '%Y-%m-%dT%H:%M')
     return redirect('/admin-results/JNTUGV_SECRET')
 
 @app.route('/reset-election', methods=['POST'])
 def reset_election():
-    global voting_blockchain
-    voting_blockchain = Blockchain()
+    global voting_blockchain, security_logs
+    voting_blockchain, security_logs = Blockchain(), []
     if os.path.exists(STORAGE_FILE):
         os.remove(STORAGE_FILE)
     return redirect('/admin-results/JNTUGV_SECRET')
 
 if __name__ == '__main__':
-    # Binds to Render's environment port for deployment
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
