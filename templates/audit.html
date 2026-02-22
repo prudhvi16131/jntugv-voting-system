@@ -3,51 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Public Audit | JNTU-GV Blockchain</title>
+    <title>JNTU-GV | Blockchain Audit</title>
     <style>
-        :root { --primary: #0062ff; --bg: #f8fafc; --success: #10b981; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .audit-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; box-sizing: border-box; margin: 1rem 0; text-align: center; font-family: monospace; }
-        .btn-search { background: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .result-box { margin-top: 2rem; padding: 1.5rem; border: 2px solid var(--success); border-radius: 15px; background: #f0fff4; animation: fadeIn 0.5s; }
-        .data-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-top: 10px; }
-        .data-value { font-family: monospace; word-break: break-all; color: #1e293b; font-size: 0.95rem; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --primary: #0062ff; --success: #10b981; --bg: #f8fafc; }
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: #f0f4f8; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; 
+        }
+        .audit-card { 
+            background: white; padding: 2rem; border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 90%; max-width: 500px; text-align: center;
+        }
+        h2 { color: #1e293b; margin-bottom: 1rem; }
+        .search-box { margin: 20px 0; }
+        input { 
+            width: 100%; padding: 1rem; border: 2px solid #e2e8f0; 
+            border-radius: 12px; font-size: 1rem; box-sizing: border-box;
+            text-align: center; font-family: monospace; text-transform: uppercase;
+        }
+        .btn-search { 
+            background: var(--primary); color: white; border: none; 
+            padding: 1rem; width: 100%; border-radius: 12px; 
+            font-weight: 700; margin-top: 10px; cursor: pointer;
+        }
+        .result-box { 
+            margin-top: 2rem; padding: 1.5rem; border-radius: 12px; 
+            text-align: left; font-size: 0.9rem; border-left: 5px solid var(--success);
+            background: #f0fff4;
+        }
+        .error-box { 
+            margin-top: 2rem; padding: 1rem; background: #fff5f5; 
+            color: #c53030; border-radius: 12px; border: 1px solid #feb7b7;
+        }
+        .data-label { font-weight: 700; color: #64748b; display: block; margin-top: 8px; }
+        .data-value { color: #1e293b; word-break: break-all; font-family: monospace; }
+        .back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="audit-card">
-        <h2 style="text-align: center; margin-top: 0;">Independent Audit</h2>
-        <p style="color: #64748b; text-align: center;">Enter your Digital Receipt to verify your vote on the blockchain.</p>
-        
-        <form method="POST">
-            <input type="text" name="receipt" placeholder="Enter Receipt (e.g. 653160D0CD)" value="{{ searched_id or '' }}" required>
-            <button type="submit" class="btn-search">Verify Integrity</button>
-        </form>
 
-        {% if result %}
+<div class="audit-card">
+    <div style="font-size: 3rem;">🔍</div>
+    <h2>Verify Vote Receipt</h2>
+    <p style="color: #64748b;">Enter your 10-character code to see your vote on the blockchain ledger.</p>
+
+    <form action="/audit" method="POST" class="search-box">
+        <input type="text" name="receipt" maxlength="10" placeholder="E.G. A1B2C3D4E5" value="{{ searched_id if searched_id else '' }}" required>
+        <button type="submit" class="btn-search">Search Blockchain Ledger</button>
+    </form>
+
+    {% if result %}
         <div class="result-box">
-            <h4 style="color: var(--success); margin-top: 0;">✅ Vote Verified in Block #{{ result.block_index }}</h4>
-            <span class="data-label">Merkle Root (Integrity Seal)</span>
+            <h3 style="margin-top:0; color: var(--success);">✅ Vote Verified</h3>
+            
+            <span class="data-label">Block Number:</span>
+            <span class="data-value">#{{ result.block_index }}</span>
+
+            <span class="data-label">Timestamp (IST):</span>
+            <span class="data-value">{{ result.timestamp }}</span>
+
+            <span class="data-label">Merkle Root Hash:</span>
             <span class="data-value">{{ result.merkle_root }}</span>
-            
-            <span class="data-label">Previous Block Hash</span>
+
+            <span class="data-label">Previous Block Hash:</span>
             <span class="data-value">{{ result.prev_hash }}</span>
-            
-            <p style="font-size: 0.85rem; color: #4a5568; margin-top: 15px; border-top: 1px solid #c6f6d5; padding-top: 10px;">
-                This proof confirms your vote for <b>{{ result.candidate }}</b> is immutable and part of the authorized chain.
-            </p>
+
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dcfce7;">
+                <span class="data-label">Candidate Voted:</span>
+                <span class="data-value" style="font-size: 1.1rem; font-weight: 800;">{{ result.candidate }}</span>
+            </div>
         </div>
-        {% elif searched_id %}
-        <p style="color: #e53e3e; text-align: center; margin-top: 2rem;">❌ No matching record found for this receipt.</p>
-        {% endif %}
-    </div>
-    <div style="text-align: center; margin-top: 2rem;">
-        <a href="/" style="color: #64748b; text-decoration: none; font-weight: 600;">← Back to Voting Home</a>
-    </div>
+    {% elif searched_id %}
+        <div class="error-box">
+            <strong>Not Found:</strong> Receipt "{{ searched_id }}" could not be located in the current blockchain ledger.
+        </div>
+    {% endif %}
+
+    <a href="/" class="back-link">← Return to Voting Page</a>
 </div>
+
 </body>
 </html>

@@ -11,10 +11,10 @@ app = Flask(__name__)
 voting_blockchain = Blockchain()
 
 # --- 1. CONFIGURATION ---
-# Default settings can be overwritten via the Admin Dashboard
+# Default window (Update these in the Admin Dashboard)
 voting_config = {
-    "start": datetime(2026, 2, 22, 11, 25),
-    "end": datetime(2026, 2, 22, 11, 41),
+    "start": datetime(2026, 2, 22, 11, 0),
+    "end": datetime(2026, 2, 22, 12, 0),
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"},
         {"name": "Laxman", "symbol": "🐘"}
@@ -27,7 +27,7 @@ STORAGE_FILE = 'blockchain_storage.json'
 
 # --- 2. PERSISTENCE LOGIC ---
 def save_blockchain():
-    """Saves the chain to a JSON file to prevent data loss on Render restarts."""
+    """Saves the blockchain to a file for persistent storage on Render."""
     chain_data = [block.__dict__ for block in voting_blockchain.chain]
     with open(STORAGE_FILE, 'w') as f:
         json.dump(chain_data, f)
@@ -38,8 +38,7 @@ def index():
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None) 
     
-    # CALCULATE REMAINING SECONDS:
-    # This forces the countdown to follow your Admin Page settings
+    # Duration-sync logic: Calculates seconds left based on Admin settings
     remaining_seconds = int((voting_config["end"] - now).total_seconds())
     
     if now < voting_config["start"]:
@@ -63,7 +62,7 @@ def cast_vote():
     if voter_id not in AUTHORIZED_VOTERS:
         return "<h1>Unauthorized Student ID</h1>", 403
 
-    # ZKP NULLIFIER for privacy and double-vote protection
+    # ZKP Nullifier to prevent double voting
     nullifier = hashlib.sha256(f"jntugv_salt_{voter_id}".encode()).hexdigest()
 
     for block in voting_blockchain.chain:
@@ -71,6 +70,7 @@ def cast_vote():
             if tx.get('nullifier') == nullifier:
                 return "<h1>Error: This ID has already cast a vote!</h1>", 403
 
+    # Generate 10-character receipt for the audit page
     receipt = hashlib.sha256(f"{nullifier}{time.time()}".encode()).hexdigest()[:10].upper()
 
     vote_data = {
@@ -86,7 +86,28 @@ def cast_vote():
     
     return render_template('success.html', receipt=receipt)
 
-# --- 4. ADMIN DASHBOARD & MANAGEMENT ---
+# --- 4. PUBLIC AUDIT (FIXED ROUTE) ---
+@app.route('/audit', methods=['GET', 'POST'])
+def audit():
+    """Searches the blockchain for a specific receipt code."""
+    search_result = None
+    receipt_to_find = request.form.get('receipt') if request.method == 'POST' else None
+    
+    if receipt_to_find:
+        for block in voting_blockchain.chain:
+            for tx in block.transactions:
+                if tx.get('receipt') == receipt_to_find.strip().upper():
+                    search_result = {
+                        "block_index": block.index,
+                        "merkle_root": block.merkle_root,
+                        "timestamp": datetime.fromtimestamp(block.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
+                        "candidate": tx.get('candidate'),
+                        "prev_hash": block.previous_hash
+                    }
+                    break
+    return render_template('audit.html', result=search_result, searched_id=receipt_to_find)
+
+# --- 5. ADMIN DASHBOARD & MANAGEMENT ---
 @app.route('/admin-results/JNTUGV_SECRET')
 def admin_results():
     tally = {}
@@ -104,10 +125,8 @@ def admin_results():
     return render_template('results.html', tally=tally, winner=winner, 
                            config=voting_config, turnout=turnout, total=total_votes)
 
-# FIX: Added this specific route to stop the "Not Found" error
 @app.route('/update-candidates', methods=['POST'])
 def update_candidates():
-    """Handles dynamic candidate and symbol updates."""
     names = request.form.getlist('c_name')
     symbols = request.form.getlist('c_symbol')
     updated_list = []
@@ -119,7 +138,6 @@ def update_candidates():
 
 @app.route('/update-time', methods=['POST'])
 def update_time():
-    """Updates the election window manually."""
     new_start = request.form.get('start_time')
     new_end = request.form.get('end_time')
     voting_config["start"] = datetime.strptime(new_start, '%Y-%m-%dT%H:%M')
@@ -128,7 +146,6 @@ def update_time():
 
 @app.route('/stop-early', methods=['POST'])
 def stop_early():
-    """Ends election instantly."""
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST).replace(tzinfo=None)
     voting_config["end"] = now
@@ -143,4 +160,6 @@ def reset_election():
     return redirect('/admin-results/JNTUGV_SECRET')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)  
+    # Use Render's environment port
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
