@@ -4,96 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV Secure Voting</title>
-    
     <style>
-        :root { 
-            --primary: #0062ff; 
-            --bg: #f0f4f8; 
-            --danger: #e53e3e;
-        }
+        :root { --primary: #0062ff; --bg: #f0f4f8; --danger: #e53e3e; }
         body { 
             font-family: 'Inter', system-ui, sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; margin: 0; color: #2d3748;
+            min-height: 100vh; margin: 0; 
         }
         .card { 
             background: white; padding: 2.5rem; border-radius: 20px; 
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); 
             width: 90%; max-width: 420px; text-align: center;
         }
-        .header { margin-bottom: 2rem; }
-        .logo-icon { font-size: 3rem; margin-bottom: 1rem; display: inline-block; }
-        h2 { margin: 0; color: #1a202c; font-size: 1.6rem; }
-        .subtitle { color: #718096; margin-top: 8px; font-size: 0.95rem; }
-        
-        /* Countdown Timer Box */
         #timer-container {
             background: #fff5f5; padding: 15px; border-radius: 12px;
             margin: 20px 0; border: 1px solid #fed7d7;
         }
-        #timer { 
-            font-weight: 800; color: var(--danger); 
-            font-size: 1.4rem; display: block;
-        }
+        #timer { font-weight: 800; color: var(--danger); font-size: 1.5rem; display: block; }
         .timer-label { font-size: 0.75rem; color: #c53030; font-weight: 700; text-transform: uppercase; }
-
         .form-group { text-align: left; margin-bottom: 1.5rem; }
-        label { display: block; font-weight: 600; margin-bottom: 0.6rem; color: #4a5568; font-size: 0.9rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.6rem; color: #4a5568; }
         input, select { 
             width: 100%; padding: 0.85rem; border: 2px solid #e2e8f0; 
             border-radius: 12px; font-size: 1rem; box-sizing: border-box;
-            background-color: #f8fafc; transition: all 0.2s;
         }
-        input:focus, select:focus { 
-            border-color: var(--primary); outline: none; 
-            box-shadow: 0 0 0 4px rgba(0, 98, 255, 0.1);
-        }
-        
         .btn-vote { 
             background: var(--primary); color: white; border: none; 
             padding: 1.1rem; width: 100%; border-radius: 12px; 
             font-weight: 700; font-size: 1.1rem; cursor: pointer; 
-            transition: all 0.2s; box-shadow: 0 4px 6px rgba(0, 98, 255, 0.2);
         }
-        .btn-vote:hover { background: #0052d6; transform: translateY(-2px); }
-        .btn-vote:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
-
-        .footer { 
-            margin-top: 2rem; font-size: 0.85rem; color: #a0aec0; 
-            border-top: 1px solid #edf2f7; padding-top: 1.2rem; 
-        }
-        .audit-link {
-            display: inline-block; margin-top: 12px;
-            color: var(--primary); text-decoration: none; font-weight: 700;
-        }
+        .btn-vote:disabled { background: #cbd5e0; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="header">
-        <div class="logo-icon">🛡️</div>
-        <h2>JNTU-GV E-Voting</h2>
-        <p class="subtitle">Blockchain-Secured Student Election</p>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+        <h2 style="margin:0;">JNTU-GV E-Voting</h2>
+        <p style="color: #718096; font-size: 0.9rem;">Blockchain-Secured Student Election</p>
         
         <div id="timer-container">
-            <span class="timer-label">Election Window Closing In:</span>
-            <span id="timer">--h --m --s</span>
+            <span class="timer-label">Time Remaining in Window:</span>
+            <span id="timer">Loading...</span>
         </div>
     </div>
 
     {% if status == "live" %}
     <form action="/cast_vote" method="post">
         <div class="form-group">
-            <label for="voter_id">Hall Ticket Number</label>
-            <input type="text" id="voter_id" name="voter_id" placeholder="e.g., 24V11A0501" required>
+            <label>Hall Ticket Number</label>
+            <input type="text" name="voter_id" placeholder="e.g., 24V11A0501" required>
         </div>
 
         <div class="form-group">
-            <label for="candidate">Choose Your Candidate</label>
-            <select id="candidate" name="candidate" required>
-                <option value="" disabled selected>Select candidate from list</option>
+            <label>Choose Your Candidate</label>
+            <select name="candidate" required>
+                <option value="" disabled selected>Select from list</option>
                 {% for c in config.candidates %}
                 <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
                 {% endfor %}
@@ -104,52 +72,49 @@
     </form>
     {% elif status == "waiting" %}
         <div style="background: #fffaf0; padding: 15px; border-radius: 10px; color: #9c4221; font-weight: 600;">
-            Voting starts at {{ config.start.strftime('%H:%M IST') }}
+            Voting has not started yet.
         </div>
     {% else %}
         <div style="background: #fff5f5; padding: 15px; border-radius: 10px; color: #c53030; font-weight: 600;">
-            Election is officially closed.
+            Election Window Closed.
         </div>
     {% endif %}
 
-    <div class="footer">
-        Authorized Range: <span style="font-weight: bold; color: #4a5568;">24V11A0501 — 24V11A0580</span> <br>
-        <a href="/audit" class="audit-link">Verify Your Vote Receipt</a>
+    <div style="margin-top: 2rem; font-size: 0.8rem; color: #a0aec0;">
+        Authorized Range: 24V11A0501 — 24V11A0580
     </div>
 </div>
 
 <script>
-    // Corrected Dynamic Timer Logic
-    const endTime = {{ end_ms if end_ms else 0 }};
-    
-    if (endTime > 0) {
-        function updateTimer() {
-            const now = new Date().getTime();
-            const distance = endTime - now;
+    // FIX: Uses total seconds left from Admin Page
+    let timeLeft = {{ remaining_s | int }};
 
-            if (distance < 0) {
-                document.getElementById("timer").innerHTML = "CLOSED";
-                if(document.getElementById("voteBtn")) {
-                    document.getElementById("voteBtn").disabled = true;
-                    document.getElementById("voteBtn").innerText = "Election Ended";
-                }
-                return;
-            }
-
-            // Calculate hours, minutes, and seconds from end_ms
-            const h = Math.floor(distance / (1000 * 60 * 60));
-            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((distance % (1000 * 60)) / 1000);
-
-            // Update display
-            document.getElementById("timer").innerHTML = 
-                (h < 10 ? "0" + h : h) + "h " + 
-                (m < 10 ? "0" + m : m) + "m " + 
-                (s < 10 ? "0" + s : s) + "s";
+    function updateDisplay() {
+        if (timeLeft <= 0) {
+            document.getElementById("timer").innerHTML = "00h 00m 00s";
+            if(document.getElementById("voteBtn")) document.getElementById("voteBtn").disabled = true;
+            return;
         }
 
-        setInterval(updateTimer, 1000);
-        updateTimer();
+        // Standard Math for Hours/Minutes/Seconds
+        const h = Math.floor(timeLeft / 3600);
+        const m = Math.floor((timeLeft % 3600) / 60);
+        const s = Math.floor(timeLeft % 60);
+
+        document.getElementById("timer").innerHTML = 
+            (h < 10 ? "0" + h : h) + "h " + 
+            (m < 10 ? "0" + m : m) + "m " + 
+            (s < 10 ? "0" + s : s) + "s";
+        
+        timeLeft--;
+    }
+
+    // Start the interval
+    if (timeLeft > 0) {
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
+    } else {
+        document.getElementById("timer").innerHTML = "00h 00m 00s";
     }
 </script>
 
