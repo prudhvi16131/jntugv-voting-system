@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV | Blockchain E-Voting</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Comic+Sans+MS&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
     <style>
         :root {
             --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -13,31 +13,29 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background: var(--blue-gradient);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
         }
 
         .main-card {
             background: var(--card-bg);
-            width: 90%;
-            max-width: 450px;
+            width: 90%; max-width: 450px;
             padding: 40px 30px;
             border-radius: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             text-align: center;
         }
 
-        .shield-icon { width: 60px; margin-bottom: 15px; }
+        /* Shield Icon Style */
+        .shield-icon { width: 70px; margin-bottom: 10px; }
+
         h2 { font-size: 1.8rem; margin: 0; color: #333; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #888; margin-bottom: 25px; }
 
-        /* Functional Timer Box */
+        /* Timer Styling using Playfair Font for the italic look */
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -47,22 +45,21 @@
         }
 
         .timer-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             color: #ff5a5a;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .timer-value {
-            font-family: 'Comic Sans MS', cursive;
-            font-size: 1.4rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
             color: #ff5a5a;
             margin-top: 5px;
-            font-weight: bold;
+            font-style: italic; /* Specific request for italic font */
         }
 
-        /* Form Styles */
         .input-group { text-align: left; margin-bottom: 20px; }
         .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #555; margin-bottom: 8px; }
         
@@ -81,33 +78,40 @@
         .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
 
         .footer-info { margin-top: 30px; font-size: 0.65rem; color: #bbb; }
-        .verify-link { display: block; margin-top: 10px; color: var(--accent-blue); text-decoration: none; font-weight: 600; }
+
+        /* Fixed Audit/Verify Link */
+        .verify-link { 
+            display: block; margin-top: 10px; color: var(--accent-blue); 
+            text-decoration: none; font-weight: 600; cursor: pointer;
+        }
+        .verify-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="main-card">
-    <img src="https://img.icons8.com/ios/100/000000/shield.png" class="shield-icon" alt="Secure Shield">
+    <img src="https://img.icons8.com/fluency/100/shield.png" class="shield-icon" alt="E-Voting Symbol">
+    
     <h2>JNTU-GV E-Voting</h2>
     <div class="sub-heading">Blockchain-Secured Student Election</div>
 
     <div class="timer-box">
         <div class="timer-label">Election Window Closing In:</div>
-        <div id="countdown" class="timer-value">00h 00m 00s</div>
+        <div id="countdown" class="timer-value">Loading...</div>
     </div>
 
-    <form action="/cast_vote" method="POST" id="votingForm">
+    <form action="/cast_vote" method="POST">
         <div class="input-group">
-            <label for="hall_ticket">Hall Ticket Number</label>
-            <input type="text" id="hall_ticket" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
+            <label>Hall Ticket Number</label>
+            <input type="text" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
         </div>
 
         <div class="input-group">
-            <label for="candidate">Choose Your Candidate</label>
-            <select id="candidate" name="candidate" class="styled-input" required>
+            <label>Choose Your Candidate</label>
+            <select name="candidate" class="styled-input" required>
                 <option value="" disabled selected>Select candidate from list</option>
-                {% for c in candidates %}
-                <option value="{{ c }}">{{ c }}</option>
+                {% for c in candidate_list %}
+                <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -116,44 +120,35 @@
     </form>
 
     <div class="footer-info">
-        Authorized Range: <strong>24V11A0501 — 24V11A0580</strong>
-        <a href="#" class="verify-link">Verify Your Vote Receipt</a>
+        Authorized Range: 24V11A0501 — 24V11A0580
+        <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
     </div>
 </div>
 
 <script>
-    // Pull the end time from Flask (Ensure it's ISO format)
     const targetDate = new Date("{{ settings.end_time }}").getTime();
-
     function updateCountdown() {
         const now = new Date().getTime();
         const difference = targetDate - now;
-
-        const countdownElement = document.getElementById("countdown");
-        const submitBtn = document.getElementById("submitBtn");
-
+        
         if (difference <= 0) {
-            countdownElement.innerHTML = "ELECTION CLOSED";
-            countdownElement.style.color = "#64748b";
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Voting Ended";
+            document.getElementById("countdown").innerHTML = "CLOSED";
+            document.getElementById("submitBtn").disabled = true;
             return;
         }
 
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        countdownElement.innerHTML = 
+        
+        document.getElementById("countdown").innerHTML = 
             (hours < 10 ? "0" + hours : hours) + "h " + 
             (minutes < 10 ? "0" + minutes : minutes) + "m " + 
             (seconds < 10 ? "0" + seconds : seconds) + "s";
     }
 
-    // Refresh every second
     setInterval(updateCountdown, 1000);
     updateCountdown();
 </script>
-
 </body>
 </html>

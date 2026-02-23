@@ -6,7 +6,7 @@ import pytz
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-app.secret_key = "JNTUGV_BLOCKCHAIN_2026_FINAL_PRO"
+app.secret_key = "JNTUGV_BLOCKCHAIN_2026_MASTER_PRO"
 
 # --- CONFIGURATION ---
 IST = pytz.timezone('Asia/Kolkata')
@@ -62,22 +62,22 @@ class Blockchain:
                     count += 1
         return count
 
-# Initialize Global Blockchain
 blockchain = Blockchain()
 
 # --- ROUTES ---
 
 @app.route('/')
 def index():
-    candidate_names = [c['name'] for c in ELECTION_SETTINGS["candidates"]]
-    return render_template('index.html', candidates=candidate_names, settings=ELECTION_SETTINGS)
+    # Pass the full candidate list so index.html can show Symbols + Names
+    return render_template('index.html', 
+                           candidate_list=ELECTION_SETTINGS["candidates"], 
+                           settings=ELECTION_SETTINGS)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
 
-    # 1. Range Validation (24V11A0501 - 24V11A0580)
     try:
         suffix = int(student_id[-4:])
         is_valid_prefix = student_id.startswith(ELECTION_SETTINGS["authorized_prefix"])
@@ -91,49 +91,33 @@ def cast_vote():
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # 2. Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
             "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote"
         })
-        return "<h1>Vote Already Cast</h1><p>Blockchain prevents duplicate entries.</p><a href='/'>Back</a>"
+        return "<h1>Vote Already Cast</h1><a href='/'>Back</a>"
 
-    # 3. Add to Blockchain & Generate Receipt
     blockchain.nullifiers.add(nullifier)
     timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
     
-    vote_data = {'candidate': candidate, 'receipt': receipt_id}
-    blockchain.pending_votes.append(vote_data)
+    blockchain.pending_votes.append({'candidate': candidate, 'receipt': receipt_id})
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    return render_template('success.html', 
-                           candidate=candidate, 
-                           receipt=receipt_id, 
-                           timestamp=timestamp)
+    return render_template('success.html', candidate=candidate, receipt=receipt_id, timestamp=timestamp)
 
-# --- AUDIT ROUTE WITH SEARCH LOGIC ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_ledger():
-    searched_id = None
-    result = None
-
+    searched_id, result = None, None
     if request.method == 'POST':
         searched_id = request.form.get('receipt', '').upper().strip()
-        
-        # Search blockchain for the receipt
         for block in blockchain.chain:
             for vote in block['votes']:
                 if vote.get('receipt') == searched_id:
-                    result = {
-                        "candidate": vote['candidate'],
-                        "timestamp": block['timestamp'],
-                        "block_index": block['index']
-                    }
+                    result = {"candidate": vote['candidate'], "timestamp": block['timestamp'], "block_index": block['index']}
                     break
             if result: break
-
     return render_template('audit.html', searched_id=searched_id, result=result)
 
 @app.route(f'/admin-results/{ADMIN_SECRET}')
@@ -141,17 +125,7 @@ def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
     total_eligible = (ELECTION_SETTINGS["range_end"] - ELECTION_SETTINGS["range_start"]) + 1
-    turnout = round((len(blockchain.nullifiers) / total_eligible) * 100, 1)
-    
-    return render_template('results.html', 
-                           settings=ELECTION_SETTINGS,
-                           winner=winner, 
-                           turnout=turnout, 
-                           vote_counts=vote_counts,
-                           logs=blockchain.security_logs,
-                           current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
-
-# --- API ENDPOINTS ---
+    return render_template('results.html', settings=ELECTION_SETTINGS, winner=winner, turnout=round((len(blockchain.nullifiers) / total_eligible) * 100, 1), vote_counts=vote_counts, logs=blockchain.security_logs, current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
 
 @app.route('/update_settings', methods=['POST'])
 def update_settings():
@@ -165,10 +139,8 @@ def update_settings():
 def reset_election():
     global blockchain
     blockchain = Blockchain()
-    ELECTION_SETTINGS["candidates"] = [{"name": "Candidate 1", "symbol": "🗳️"}]
     return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
 
-# --- DEPLOYMENT CONFIG FOR RENDER ---
 if __name__ == '__main__':
-    # host='0.0.0.0' is required for Render to map the internal port correctly
+    # Critical: host='0.0.0.0' is required for Render to function
     app.run(host='0.0.0.0', port=10000)
