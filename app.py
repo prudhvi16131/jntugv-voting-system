@@ -101,7 +101,7 @@ def cast_vote():
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # Double Vote Check (Redirects to your custom template)
+    # Double Vote Check (Redirects to your already_cast.html template)
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
@@ -119,7 +119,7 @@ def cast_vote():
     
     return render_template('success.html', candidate=candidate, receipt=receipt_id, timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
 
-# --- AUDIT PORTAL ROUTE (FIXED FOR 404) ---
+# --- AUDIT PORTAL ROUTE (FIXES THE 404 ERROR) ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_portal():
     searched_id, result = None, None
