@@ -8,7 +8,7 @@
     <style>
         :root {
             --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --accent-blue: #007bff;
+            --accent-blue: #2563eb;
             --card-bg: #ffffff;
         }
 
@@ -29,13 +29,17 @@
             text-align: center;
         }
 
-        /* Shield Icon Style */
-        .shield-icon { width: 70px; margin-bottom: 10px; }
+        /* Shield Icon (Updated to Pic 2 Style) */
+        .shield-icon { 
+            width: 80px; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
 
         h2 { font-size: 1.8rem; margin: 0; color: #333; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #888; margin-bottom: 25px; }
 
-        /* Timer Styling using Playfair Font for the italic look */
+        /* Timer Styling (Updated to Pic 1 Style) */
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -45,19 +49,20 @@
         }
 
         .timer-label {
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: #ff5a5a;
             text-transform: uppercase;
             letter-spacing: 1.5px;
+            margin-bottom: 5px;
         }
 
         .timer-value {
             font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
+            font-size: 2.1rem;
             color: #ff5a5a;
+            font-style: italic; /* Specific request from Pic 1 */
             margin-top: 5px;
-            font-style: italic; /* Specific request for italic font */
         }
 
         .input-group { text-align: left; margin-bottom: 20px; }
@@ -71,20 +76,20 @@
         .btn-confirm {
             width: 100%; background: var(--accent-blue); color: white; padding: 18px;
             border: none; border-radius: 15px; font-size: 1rem; font-weight: 600;
-            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
             transition: 0.3s;
         }
 
-        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+        .btn-confirm:hover { transform: translateY(-2px); background: #1d4ed8; }
+        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
 
-        .footer-info { margin-top: 30px; font-size: 0.65rem; color: #bbb; }
-
-        /* Fixed Audit/Verify Link */
+        .footer-info { margin-top: 30px; font-size: 0.7rem; color: #bbb; }
+        
+        /* Verify Link Styling (Pic 1 Style) */
         .verify-link { 
-            display: block; margin-top: 10px; color: var(--accent-blue); 
-            text-decoration: none; font-weight: 600; cursor: pointer;
+            display: inline-block; margin-top: 10px; color: var(--accent-blue); 
+            text-decoration: underline; font-weight: 600; cursor: pointer;
         }
-        .verify-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -120,7 +125,7 @@
     </form>
 
     <div class="footer-info">
-        Authorized Range: 24V11A0501 — 24V11A0580
+        Authorized Range: {{ settings.authorized_prefix }}{{ settings.range_start }} — {{ settings.authorized_prefix }}{{ settings.range_end }}<br>
         <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
     </div>
 </div>

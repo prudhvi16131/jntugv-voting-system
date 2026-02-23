@@ -103,14 +103,15 @@ def cast_vote():
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # Double Vote Check
+    # Double Vote Check (Updated to return designed template)
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
             "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), 
             "reason": "Double Vote Attempt", "ip": user_ip
         })
-        return "<h1>Vote Already Cast</h1><a href='/'>Back</a>"
+        # Points to the new designed template
+        return render_template('already_cast.html')
 
     blockchain.nullifiers.add(nullifier)
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
@@ -140,7 +141,7 @@ def security_center():
                            logs=blockchain.security_logs, 
                            settings=ELECTION_SETTINGS)
 
-# --- API ENDPOINTS FOR BUTTONS ---
+# --- API ENDPOINTS ---
 
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
