@@ -79,7 +79,10 @@ def cast_vote():
     candidate = request.form.get('candidate')
     
     # Capture User IP (Works on Render and local)
+    # X-Forwarded-For is necessary to get the actual client IP on Render
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if user_ip and ',' in user_ip:
+        user_ip = user_ip.split(',')[0]
 
     try:
         suffix = int(student_id[-4:])
@@ -97,6 +100,7 @@ def cast_vote():
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
+    # Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | JNTU-GV</title>
+    <title>Admin Dashboard | JNTU-GV Blockchain</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --primary: #2563eb; 
@@ -12,29 +13,33 @@
             --success: #10b981;
             --bg: #f8fafc;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        .container { max-width: 1100px; margin: 0 auto; }
         
         /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card h3 { margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
-        .card p { margin: 10px 0 0; font-size: 1.8rem; font-weight: 700; color: #1e293b; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .card h3 { margin: 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .card p { margin: 10px 0 0; font-size: 2rem; font-weight: 700; }
 
-        /* Chart & Log Section */
-        .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        /* Chart & Log Layout */
+        .main-grid { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 20px; align-items: start; }
         
         /* Table Styling */
-        .log-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .log-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow-x: auto; }
         .log-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
-        .log-table th { text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; }
-        .log-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .log-table th { text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-weight: 600; }
+        .log-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 
-        /* Buttons */
+        .badge-red { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .ip-text { font-family: monospace; color: #475569; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+
+        /* Header Buttons */
         .btn-reset { 
             background: var(--danger); color: white; border: none; padding: 12px 24px; 
-            border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 20px;
+            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;
         }
+        .btn-reset:hover { background: #dc2626; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -42,59 +47,66 @@
 <div class="container">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <div>
-            <h1 style="margin: 0;">Admin Dashboard</h1>
-            <p style="color: #64748b; margin: 5px 0 0;">Last Updated: {{ current_time }}</p>
+            <h1 style="margin: 0; font-size: 1.75rem;">JNTU-GV Election Admin</h1>
+            <p style="color: #64748b; margin: 5px 0 0;">Blockchain Live Status | {{ current_time }}</p>
         </div>
-        <button onclick="resetElection()" class="btn-reset">Master Reset Election</button>
+        <button onclick="resetElection()" class="btn-reset">Master Reset Blockchain</button>
     </header>
 
     <div class="stats-grid">
         <div class="card">
-            <h3>Current Winner</h3>
+            <h3>Leading Candidate</h3>
             <p style="color: var(--primary);">{{ winner }}</p>
         </div>
         <div class="card">
-            <h3>Total Turnout</h3>
+            <h3>Student Turnout</h3>
             <p>{{ turnout }}%</p>
         </div>
         <div class="card">
-            <h3>Election Status</h3>
-            <p style="color: var(--success);">LIVE</p>
+            <h3>Network Status</h3>
+            <p style="color: var(--success);">ACTIVE</p>
         </div>
     </div>
 
     <div class="main-grid">
         <div class="card">
             <h3>Vote Distribution</h3>
-            <canvas id="voteChart" style="margin-top: 20px;"></canvas>
+            <div style="margin-top: 20px;">
+                <canvas id="voteChart"></canvas>
+            </div>
         </div>
 
         <div class="log-container">
-            <h3 style="margin: 0;">Security Alerts</h3>
+            <h3 style="margin: 0;">⚠️ Security Alerts & Violations</h3>
             <table class="log-table">
                 <thead>
                     <tr>
                         <th>Time</th>
-                        <th>Hall Ticket</th>
-                        <th>Reason</th>
-                        <th>Device IP</th> </tr>
+                        <th>Attempted ID</th>
+                        <th>Violation</th>
+                        <th>Device IP</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for log in logs %}
                     <tr>
                         <td>{{ log.time }}</td>
-                        <td style="color: var(--danger); font-weight: 600;">{{ log.id }}</td>
-                        <td>{{ log.reason }}</td>
-                        <td style="font-family: monospace; color: #64748b;">{{ log.ip }}</td> </tr>
+                        <td style="font-weight: 700; color: #1e293b;">{{ log.id }}</td>
+                        <td><span class="badge-red">{{ log.reason }}</span></td>
+                        <td><span class="ip-text">{{ log.ip if log.ip else '0.0.0.0' }}</span></td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% if not logs %}
+            <p style="text-align: center; color: #94a3b8; margin-top: 20px;">No security threats detected.</p>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-    // Initialize Vote Chart
+    // Initialize Bar Chart for Results
     const ctx = document.getElementById('voteChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
@@ -103,19 +115,27 @@
             datasets: [{
                 label: 'Votes',
                 data: [{% for count in vote_counts.values() %}{{ count }},{% endfor %}],
-                backgroundColor: ['#2563eb', '#7c3aed', '#db2777', '#ea580c'],
-                borderRadius: 8
+                backgroundColor: ['#2563eb', '#7c3aed', '#db2777', '#f59e0b'],
+                borderRadius: 10,
+                borderSkipped: false,
             }]
         },
-        options: { responsive: true, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
     });
 
-    // Master Reset Function
+    // Master Reset Protocol
     async function resetElection() {
-        if (confirm("DANGER: This will wipe all blockchain data and votes. Are you sure?")) {
+        if (confirm("CRITICAL WARNING: This will permanently wipe the blockchain ledger and all security logs. Proceed?")) {
             const response = await fetch('/reset_election', { method: 'POST' });
             if (response.ok) {
-                alert("Blockchain Reset Successful.");
+                alert("Blockchain has been wiped and reset to Block #1.");
                 window.location.reload();
             }
         }
