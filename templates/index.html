@@ -33,26 +33,11 @@
             text-align: center;
         }
 
-        .shield-icon {
-            width: 60px;
-            margin-bottom: 15px;
-        }
+        .shield-icon { width: 60px; margin-bottom: 15px; }
+        h2 { font-size: 1.8rem; margin: 0; color: #333; font-weight: 700; }
+        .sub-heading { font-size: 0.8rem; color: #888; margin-bottom: 25px; }
 
-        h2 {
-            font-size: 1.8rem;
-            margin: 0;
-            color: #333;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-        }
-
-        .sub-heading {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 25px;
-        }
-
-        /* Countdown Box */
+        /* Functional Timer Box */
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -62,7 +47,7 @@
         }
 
         .timer-label {
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: #ff5a5a;
             text-transform: uppercase;
@@ -74,74 +59,29 @@
             font-size: 1.4rem;
             color: #ff5a5a;
             margin-top: 5px;
+            font-weight: bold;
         }
 
-        /* Input Styles */
-        .input-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
+        /* Form Styles */
+        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #555; margin-bottom: 8px; }
+        
         .styled-input {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 15px;
-            background: #fcfcfc;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-            color: #333;
+            width: 100%; padding: 15px; border: 1px solid #e2e8f0; border-radius: 15px;
+            background: #fcfcfc; font-size: 0.9rem; box-sizing: border-box; color: #333;
         }
 
-        .styled-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 15px;
-        }
-
-        /* Button */
         .btn-confirm {
-            width: 100%;
-            background: var(--accent-blue);
-            color: white;
-            padding: 18px;
-            border: none;
-            border-radius: 15px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
-            transition: transform 0.2s;
+            width: 100%; background: var(--accent-blue); color: white; padding: 18px;
+            border: none; border-radius: 15px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            transition: 0.3s;
         }
 
-        .btn-confirm:hover {
-            transform: translateY(-2px);
-        }
+        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
 
-        .footer-info {
-            margin-top: 30px;
-            font-size: 0.65rem;
-            color: #bbb;
-        }
-
-        .verify-link {
-            display: block;
-            margin-top: 10px;
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: 600;
-        }
+        .footer-info { margin-top: 30px; font-size: 0.65rem; color: #bbb; }
+        .verify-link { display: block; margin-top: 10px; color: var(--accent-blue); text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -153,10 +93,10 @@
 
     <div class="timer-box">
         <div class="timer-label">Election Window Closing In:</div>
-        <div class="timer-value" id="countdown">05h 40m 40s</div>
+        <div id="countdown" class="timer-value">00h 00m 00s</div>
     </div>
 
-    <form action="/cast_vote" method="POST">
+    <form action="/cast_vote" method="POST" id="votingForm">
         <div class="input-group">
             <label for="hall_ticket">Hall Ticket Number</label>
             <input type="text" id="hall_ticket" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
@@ -164,7 +104,7 @@
 
         <div class="input-group">
             <label for="candidate">Choose Your Candidate</label>
-            <select id="candidate" name="candidate" class="styled-input styled-select" required>
+            <select id="candidate" name="candidate" class="styled-input" required>
                 <option value="" disabled selected>Select candidate from list</option>
                 {% for c in candidates %}
                 <option value="{{ c }}">{{ c }}</option>
@@ -172,7 +112,7 @@
             </select>
         </div>
 
-        <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
+        <button type="submit" class="btn-confirm" id="submitBtn">Confirm Secure Vote</button>
     </form>
 
     <div class="footer-info">
@@ -182,12 +122,37 @@
 </div>
 
 <script>
-    // Simple script to update the countdown
-    function updateTimer() {
-        const timerElement = document.getElementById('countdown');
-        // You can add real countdown logic here if needed
+    // Pull the end time from Flask (Ensure it's ISO format)
+    const targetDate = new Date("{{ settings.end_time }}").getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const difference = targetDate - now;
+
+        const countdownElement = document.getElementById("countdown");
+        const submitBtn = document.getElementById("submitBtn");
+
+        if (difference <= 0) {
+            countdownElement.innerHTML = "ELECTION CLOSED";
+            countdownElement.style.color = "#64748b";
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Voting Ended";
+            return;
+        }
+
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        countdownElement.innerHTML = 
+            (hours < 10 ? "0" + hours : hours) + "h " + 
+            (minutes < 10 ? "0" + minutes : minutes) + "m " + 
+            (seconds < 10 ? "0" + seconds : seconds) + "s";
     }
-    setInterval(updateTimer, 1000);
+
+    // Refresh every second
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
 </script>
 
 </body>

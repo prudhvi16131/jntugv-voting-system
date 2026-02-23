@@ -19,7 +19,7 @@ ELECTION_SETTINGS = {
         {"name": "Laxman", "symbol": "🐘"}
     ],
     "start_time": "2026-02-23T09:00",
-    "end_time": "2026-02-23T17:00",
+    "end_time": "2026-02-23T18:00", # Set to 6 PM IST
     "is_active": True,
     "authorized_prefix": "24V11A",
     "range_start": 501,
@@ -70,7 +70,8 @@ blockchain = Blockchain()
 @app.route('/')
 def index():
     candidate_names = [c['name'] for c in ELECTION_SETTINGS["candidates"]]
-    return render_template('index.html', candidates=candidate_names)
+    # Passing 'settings' is critical for the countdown timer in index.html
+    return render_template('index.html', candidates=candidate_names, settings=ELECTION_SETTINGS)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
@@ -141,9 +142,7 @@ def update_settings():
 @app.route('/reset_election', methods=['POST'])
 def reset_election():
     global blockchain
-    # Fully Clear Blockchain and Security Logs
     blockchain = Blockchain()
-    # Reset default candidates to prevent empty page
     ELECTION_SETTINGS["candidates"] = [{"name": "Candidate 1", "symbol": "🗳️"}]
     return jsonify({"status": "success", "message": "System Fully Reset"})
 
