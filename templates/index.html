@@ -3,133 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Blockchain Voting Portal</title>
+    <title>JNTU-GV | Blockchain E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Comic+Sans+MS&display=swap" rel="stylesheet">
     <style>
         :root {
-            --jntu-blue: #1e3a8a;
-            --accent: #2563eb;
-            --bg: #f1f5f9;
+            --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-blue: #007bff;
+            --card-bg: #ffffff;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
             margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--blue-gradient);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
 
-        .voting-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
+        .main-card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 450px;
+            padding: 40px 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             text-align: center;
         }
 
-        .header-img {
-            width: 80px;
-            margin-bottom: 1rem;
+        .shield-icon {
+            width: 60px;
+            margin-bottom: 15px;
         }
 
         h2 {
-            color: var(--jntu-blue);
-            margin-bottom: 0.5rem;
-            font-size: 1.5rem;
-        }
-
-        .subtitle {
-            color: #64748b;
-            font-size: 0.875rem;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            text-align: left;
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #1e293b;
-        }
-
-        input[type="text"], select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            transition: all 0.2s;
-            box-sizing: border-box;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 1rem;
-            background-color: var(--jntu-blue);
-            color: white;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 1rem;
+            font-size: 1.8rem;
+            margin: 0;
+            color: #333;
+            font-family: 'Inter', sans-serif;
             font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
         }
 
-        .btn-submit:hover {
-            background-color: var(--accent);
+        .sub-heading {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 25px;
         }
 
-        .footer {
-            margin-top: 1.5rem;
+        /* Countdown Box */
+        .timer-box {
+            background: #fff5f5;
+            border: 1px solid #ffe3e3;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+
+        .timer-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #ff5a5a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-value {
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 1.4rem;
+            color: #ff5a5a;
+            margin-top: 5px;
+        }
+
+        /* Input Styles */
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
             font-size: 0.75rem;
-            color: #94a3b8;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .styled-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            background: #fcfcfc;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .styled-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+        }
+
+        /* Button */
+        .btn-confirm {
+            width: 100%;
+            background: var(--accent-blue);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer-info {
+            margin-top: 30px;
+            font-size: 0.65rem;
+            color: #bbb;
+        }
+
+        .verify-link {
+            display: block;
+            margin-top: 10px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
-<div class="voting-card">
-    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/1/1d/JNTU_Gurajada_Vizianagaram_logo.png/220px-JNTU_Gurajada_Vizianagaram_logo.png" alt="JNTU-GV Logo" class="header-img">
-    <h2>Student Voting</h2>
-    <p class="subtitle">Secure Blockchain-Based Election</p>
+<div class="main-card">
+    <img src="https://img.icons8.com/ios/100/000000/shield.png" class="shield-icon" alt="Secure Shield">
+    <h2>JNTU-GV E-Voting</h2>
+    <div class="sub-heading">Blockchain-Secured Student Election</div>
+
+    <div class="timer-box">
+        <div class="timer-label">Election Window Closing In:</div>
+        <div class="timer-value" id="countdown">05h 40m 40s</div>
+    </div>
 
     <form action="/cast_vote" method="POST">
-        <div class="form-group">
-            <label for="student_id">Roll Number</label>
-            <input type="text" id="student_id" name="student_id" placeholder="Enter Roll Number" required>
+        <div class="input-group">
+            <label for="hall_ticket">Hall Ticket Number</label>
+            <input type="text" id="hall_ticket" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
         </div>
 
-        <div class="form-group">
-            <label for="candidate">Select Candidate</label>
-            <select id="candidate" name="candidate" required>
-                <option value="" disabled selected>Select a representative</option>
+        <div class="input-group">
+            <label for="candidate">Choose Your Candidate</label>
+            <select id="candidate" name="candidate" class="styled-input styled-select" required>
+                <option value="" disabled selected>Select candidate from list</option>
                 {% for c in candidates %}
                 <option value="{{ c }}">{{ c }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        <button type="submit" class="btn-submit">Cast Secure Vote</button>
+        <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
     </form>
 
-    <div class="footer">
-        Powered by SHA-256 Blockchain Technology
+    <div class="footer-info">
+        Authorized Range: <strong>24V11A0501 — 24V11A0580</strong>
+        <a href="#" class="verify-link">Verify Your Vote Receipt</a>
     </div>
 </div>
+
+<script>
+    // Simple script to update the countdown
+    function updateTimer() {
+        const timerElement = document.getElementById('countdown');
+        // You can add real countdown logic here if needed
+    }
+    setInterval(updateTimer, 1000);
+</script>
 
 </body>
 </html>
