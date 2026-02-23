@@ -81,7 +81,7 @@ def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
     
-    # IP Cleaning
+    # IP Cleaning logic to handle Render/Proxy strings
     raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else raw_ip
 
@@ -91,15 +91,25 @@ def cast_vote():
                    ELECTION_SETTINGS["range_start"] <= suffix <= ELECTION_SETTINGS["range_end"]
 
         if not is_valid:
-            blockchain.security_logs.append({"id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Invalid ID Range", "ip": user_ip})
+            blockchain.security_logs.append({
+                "id": student_id, 
+                "time": datetime.now(IST).strftime("%H:%M:%S"), 
+                "reason": "Invalid ID Range", 
+                "ip": user_ip
+            })
             return "<h1>Access Denied</h1><a href='/'>Back</a>"
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # Double Vote Check
+    # Double Vote Check (Redirects to your custom template)
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
-        blockchain.security_logs.append({"id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote Attempt", "ip": user_ip})
+        blockchain.security_logs.append({
+            "id": student_id, 
+            "time": datetime.now(IST).strftime("%H:%M:%S"), 
+            "reason": "Double Vote Attempt", 
+            "ip": user_ip
+        })
         return render_template('already_cast.html')
 
     blockchain.nullifiers.add(nullifier)
@@ -118,7 +128,11 @@ def audit_portal():
         for block in blockchain.chain:
             for vote in block['votes']:
                 if vote.get('receipt') == searched_id:
-                    result = {"candidate": vote['candidate'], "timestamp": block['timestamp'], "block_index": block['index']}
+                    result = {
+                        "candidate": vote['candidate'], 
+                        "timestamp": block['timestamp'], 
+                        "block_index": block['index']
+                    }
                     break
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
@@ -128,13 +142,23 @@ def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
     turnout = round((len(blockchain.nullifiers) / 80) * 100, 1)
-    return render_template('results.html', settings=ELECTION_SETTINGS, winner=winner, turnout=turnout, vote_counts=vote_counts, logs=blockchain.security_logs, candidates=ELECTION_SETTINGS["candidates"], current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
+    
+    return render_template('results.html', 
+                           settings=ELECTION_SETTINGS, 
+                           winner=winner, 
+                           turnout=turnout, 
+                           vote_counts=vote_counts, 
+                           logs=blockchain.security_logs, 
+                           candidates=ELECTION_SETTINGS["candidates"],
+                           current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
 
 @app.route(f'/admin/security-center/{ADMIN_SECRET}')
 def security_center():
-    return render_template('security_center.html', logs=blockchain.security_logs, settings=ELECTION_SETTINGS)
+    return render_template('security_center.html', 
+                           logs=blockchain.security_logs, 
+                           settings=ELECTION_SETTINGS)
 
-# --- API CONTROL ---
+# --- API CONTROL ENDPOINTS ---
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
     ELECTION_SETTINGS["candidates"] = request.json['candidates']
@@ -143,7 +167,8 @@ def sync_candidates():
 @app.route('/update_timing', methods=['POST'])
 def update_timing():
     data = request.json
-    ELECTION_SETTINGS["start_time"], ELECTION_SETTINGS["end_time"] = data['start'], data['end']
+    ELECTION_SETTINGS["start_time"] = data['start']
+    ELECTION_SETTINGS["end_time"] = data['end']
     return jsonify({"status": "success"})
 
 @app.route('/stop_election', methods=['POST'])
