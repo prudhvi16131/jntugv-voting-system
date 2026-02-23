@@ -68,7 +68,7 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
-    # Pass the full candidate list so index.html can show Symbols + Names
+    # Pass full list for Symbols + Names in dropdown
     return render_template('index.html', 
                            candidate_list=ELECTION_SETTINGS["candidates"], 
                            settings=ELECTION_SETTINGS)
@@ -77,6 +77,9 @@ def index():
 def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
+    
+    # Capture User IP (Works on Render and local)
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
 
     try:
         suffix = int(student_id[-4:])
@@ -85,19 +88,26 @@ def cast_vote():
 
         if not (is_valid_prefix and is_in_range):
             blockchain.security_logs.append({
-                "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Out of Range"
+                "id": student_id, 
+                "time": datetime.now(IST).strftime("%H:%M:%S"), 
+                "reason": "Invalid ID Range",
+                "ip": user_ip
             })
-            return "<h1>Access Denied</h1><p>ID outside authorized range.</p><a href='/'>Back</a>"
+            return "<h1>Access Denied</h1><p>Unauthorized ID.</p><a href='/'>Back</a>"
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
-            "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote"
+            "id": student_id, 
+            "time": datetime.now(IST).strftime("%H:%M:%S"), 
+            "reason": "Double Vote Attempt",
+            "ip": user_ip
         })
-        return "<h1>Vote Already Cast</h1><a href='/'>Back</a>"
+        return "<h1>Vote Already Cast</h1><p>Blockchain prevents duplicate entries.</p><a href='/'>Back</a>"
 
+    # Add to Blockchain & Generate Receipt
     blockchain.nullifiers.add(nullifier)
     timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
@@ -105,7 +115,10 @@ def cast_vote():
     blockchain.pending_votes.append({'candidate': candidate, 'receipt': receipt_id})
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    return render_template('success.html', candidate=candidate, receipt=receipt_id, timestamp=timestamp)
+    return render_template('success.html', 
+                           candidate=candidate, 
+                           receipt=receipt_id, 
+                           timestamp=timestamp)
 
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_ledger():
@@ -115,7 +128,11 @@ def audit_ledger():
         for block in blockchain.chain:
             for vote in block['votes']:
                 if vote.get('receipt') == searched_id:
-                    result = {"candidate": vote['candidate'], "timestamp": block['timestamp'], "block_index": block['index']}
+                    result = {
+                        "candidate": vote['candidate'], 
+                        "timestamp": block['timestamp'], 
+                        "block_index": block['index']
+                    }
                     break
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
@@ -125,7 +142,16 @@ def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
     total_eligible = (ELECTION_SETTINGS["range_end"] - ELECTION_SETTINGS["range_start"]) + 1
-    return render_template('results.html', settings=ELECTION_SETTINGS, winner=winner, turnout=round((len(blockchain.nullifiers) / total_eligible) * 100, 1), vote_counts=vote_counts, logs=blockchain.security_logs, current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
+    
+    return render_template('results.html', 
+                           settings=ELECTION_SETTINGS, 
+                           winner=winner, 
+                           turnout=round((len(blockchain.nullifiers) / total_eligible) * 100, 1), 
+                           vote_counts=vote_counts, 
+                           logs=blockchain.security_logs, 
+                           current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
+
+# --- API ENDPOINTS ---
 
 @app.route('/update_settings', methods=['POST'])
 def update_settings():
@@ -141,6 +167,6 @@ def reset_election():
     blockchain = Blockchain()
     return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
 
+# --- DEPLOYMENT ---
 if __name__ == '__main__':
-    # Critical: host='0.0.0.0' is required for Render to function
     app.run(host='0.0.0.0', port=10000)
