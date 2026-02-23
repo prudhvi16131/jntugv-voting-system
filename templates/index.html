@@ -4,38 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNTU-GV | Blockchain E-Voting</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <style>
-        :root { --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --accent-blue: #2563eb; }
-        body { margin: 0; font-family: sans-serif; background: var(--blue-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .main-card { background: white; width: 90%; max-width: 420px; padding: 40px 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; }
+        :root {
+            --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-blue: #2563eb;
+        }
 
-        /* Professional SVG Shield Fix */
-        .shield-svg { width: 70px; height: auto; margin-bottom: 15px; fill: #94a3b8; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--blue-gradient);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+        }
 
-        h2 { font-size: 1.7rem; color: #1e293b; margin: 0; }
-        .sub-heading { color: #64748b; font-size: 0.8rem; margin-bottom: 25px; }
+        .main-card {
+            background: #ffffff;
+            width: 90%; max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
 
-        .timer-box { background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 15px; padding: 15px; margin-bottom: 25px; }
-        .timer-label { font-size: 0.65rem; font-weight: 800; color: #ef4444; letter-spacing: 1px; text-transform: uppercase; }
+        /* Forced Shield Fix - Professional Blue/Grey Style (Pic 2) */
+        .shield-svg {
+            width: 75px;
+            height: auto;
+            margin-bottom: 15px;
+            fill: #94a3b8; /* Professional grey-blue color */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
 
-        /* FORCED FONT STYLE */
+        h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
+        .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
+
+        /* Timer Styling (Pic 1 Style) */
+        .timer-box {
+            background: #fff5f5;
+            border: 1px solid #ffe3e3;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+
+        .timer-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 5px;
+        }
+
         .timer-value {
             font-family: 'Playfair Display', serif !important;
-            font-size: 2.2rem;
+            font-size: 2.3rem;
             color: #ef4444;
-            font-style: italic !important;
+            font-style: italic !important; /* Italic requirement from Pic 1 */
             font-weight: 700;
             margin-top: 5px;
         }
 
         .input-group { text-align: left; margin-bottom: 20px; }
-        .styled-input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 0.9rem; box-sizing: border-box; }
-        .btn-confirm { width: 100%; background: var(--accent-blue); color: white; padding: 16px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .verify-link { display: inline-block; margin-top: 15px; color: var(--accent-blue); text-decoration: underline; font-weight: 600; font-size: 0.8rem; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 8px; }
+        
+        .styled-input {
+            width: 100%; padding: 15px; border: 1px solid #e2e8f0; border-radius: 15px;
+            background: #f8fafc; font-size: 0.9rem; box-sizing: border-box; color: #1e293b;
+        }
+
+        .btn-confirm {
+            width: 100%; background: var(--accent-blue); color: white; padding: 18px;
+            border: none; border-radius: 15px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            transition: 0.3s;
+        }
+
+        .btn-confirm:hover { transform: translateY(-2px); background: #1d4ed8; }
+        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* Verify Link Styling (Pic 1 Underline Style) */
+        .verify-link { 
+            display: inline-block; 
+            margin-top: 25px; 
+            color: var(--accent-blue); 
+            text-decoration: underline; 
+            font-weight: 600; 
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
 <div class="main-card">
     <svg class="shield-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
@@ -51,16 +114,23 @@
 
     <form action="/cast_vote" method="POST">
         <div class="input-group">
-            <input type="text" name="student_id" class="styled-input" placeholder="e.g. 24V11A0501" required>
+            <label>Hall Ticket Number</label>
+            <input type="text" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
         </div>
+
         <div class="input-group">
+            <label>Choose Your Candidate</label>
             <select name="candidate" class="styled-input" required>
                 <option value="" disabled selected>Select candidate from list</option>
-                {% for c in candidate_list %}<option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>{% endfor %}
+                {% for c in candidate_list %}
+                <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
+                {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
+
+        <button type="submit" class="btn-confirm" id="submitBtn">Confirm Secure Vote</button>
     </form>
+
     <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
 </div>
 
@@ -68,13 +138,24 @@
     const targetDate = new Date("{{ settings.end_time }}").getTime();
     function updateCountdown() {
         const now = new Date().getTime();
-        const diff = targetDate - now;
-        if (diff <= 0) { document.getElementById("countdown").innerHTML = "CLOSED"; return; }
-        const h = Math.floor((diff % (86400000)) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        document.getElementById("countdown").innerHTML = (h < 10 ? "0"+h : h) + "h " + (m < 10 ? "0"+m : m) + "m " + (s < 10 ? "0"+s : s) + "s";
+        const difference = targetDate - now;
+        
+        if (difference <= 0) {
+            document.getElementById("countdown").innerHTML = "CLOSED";
+            document.getElementById("submitBtn").disabled = true;
+            return;
+        }
+
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        document.getElementById("countdown").innerHTML = 
+            (hours < 10 ? "0" + hours : hours) + "h " + 
+            (minutes < 10 ? "0" + minutes : minutes) + "m " + 
+            (seconds < 10 ? "0" + seconds : seconds) + "s";
     }
+
     setInterval(updateCountdown, 1000);
     updateCountdown();
 </script>
