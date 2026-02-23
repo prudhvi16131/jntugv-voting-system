@@ -3,140 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | JNTU-GV Blockchain</title>
+    <title>Admin Dashboard | JNTU-GV</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --primary: #2563eb; 
-            --danger: #ef4444; 
-            --success: #10b981;
-            --warning: #f59e0b;
-            --bg: #f8fafc;
-        }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        :root { --primary: #2563eb; --danger: #ef4444; --success: #10b981; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; }
-        
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            border: 1px solid #e2e8f0; 
-            margin-bottom: 20px;
-        }
-
-        h3 { margin-top: 0; font-size: 1.1rem; font-weight: 700; color: #1e293b; }
-        
-        /* Inputs & Schedule Design */
-        .styled-input {
-            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px;
-            background: #fcfcfc; font-size: 0.9rem; box-sizing: border-box; margin-bottom: 10px;
-            font-family: inherit;
-        }
-
-        .btn {
-            width: 100%; color: white; padding: 14px;
-            border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
-            cursor: pointer; transition: 0.3s; margin-top: 5px;
-        }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .styled-input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; font-family: inherit; box-sizing: border-box;}
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 5px; color: white; }
         .btn-blue { background: var(--primary); }
         .btn-red { background: var(--danger); }
         .btn-green { background: var(--success); }
         .btn-gray { background: #64748b; }
-
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-
-        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat-card { flex: 1; padding: 20px; border-radius: 15px; color: white; text-align: center; }
-
-        .security-banner {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #fffbeb; border: 1px solid #fef3c7; padding: 15px 20px;
-            border-radius: 15px; margin-bottom: 20px; text-decoration: none;
-        }
+        .candidate-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .security-banner { display: flex; justify-content: space-between; align-items: center; background: #fffbeb; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-decoration: none; border: 1px solid #fef3c7; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="card" style="text-align: center; border-top: 5px solid var(--primary);">
-        <h1 style="margin: 0; font-size: 1.5rem;">JNTU-GV Admin Dashboard</h1>
-        <p style="color: #64748b; font-size: 0.8rem; margin: 5px 0 0;">BLOCKCHAIN ELECTORAL ANALYTICS & MASTER CONTROL</p>
-    </div>
-
-    <div class="stats-row">
-        <div class="stat-card" style="background: var(--primary);">
-            <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.8;">Leading Candidate</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">{{ winner }}</div>
-        </div>
-        <div class="stat-card" style="background: #7c3aed;">
-            <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.8;">Voter Turnout</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">{{ turnout }}%</div>
-        </div>
+        <h1 style="margin: 0;">JNTU-GV Admin Dashboard</h1>
     </div>
 
     <a href="/admin/security-center/{{ settings.admin_secret }}" class="security-banner">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.2rem;">⚠️</span>
-            <div style="font-weight: 700; color: #92400e;">Security Violations Detected</div>
-        </div>
-        <div style="background: var(--danger); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">{{ logs|length }}</div>
+        <div style="font-weight: 700; color: #92400e;">⚠️ Security Violations Detected</div>
+        <div style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 20px;">{{ logs|length }}</div>
     </a>
 
     <div class="card">
         <h3>Candidate Management & Live Tally</h3>
-        {% for c in candidates %}
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-            <input type="text" class="styled-input" value="{{ c.name }}" style="margin-bottom: 0; flex: 2;" readonly>
-            <div style="background: #f1f5f9; padding: 10px 15px; border-radius: 12px; font-weight: bold;">{{ c.symbol }}</div>
-            <div style="flex: 1; text-align: right; font-weight: 700; color: var(--primary);">{{ vote_counts[c.name] }} Votes</div>
+        <div id="candidateList">
+            {% for c in candidates %}
+            <div class="candidate-row">
+                <input type="text" class="styled-input candidate-name" value="{{ c.name }}" style="flex: 2; margin: 0;">
+                <input type="text" class="styled-input candidate-symbol" value="{{ c.symbol }}" style="flex: 0.5; margin: 0; text-align:center;">
+                <div style="flex: 1; text-align: right; font-weight: 700; color: var(--primary);">{{ vote_counts[c.name] }} Votes</div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-        <button class="btn btn-gray" style="margin-top: 15px;">+ Add New Candidate Row</button>
-        <button class="btn btn-green">Synchronize & Save Election List</button>
+        <button onclick="addCandidateRow()" class="btn btn-gray" style="margin-top: 15px;">+ Add New Candidate Row</button>
+        <button onclick="syncCandidates()" class="btn btn-green">Synchronize & Save Election List</button>
     </div>
 
     <div class="card">
         <h3>Election Schedule (IST)</h3>
-        <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">START TIME</label>
-        <input type="datetime-local" class="styled-input" value="{{ settings.start_time }}">
+        <label>START TIME</label>
+        <input type="datetime-local" id="startTime" class="styled-input" value="{{ settings.start_time }}">
+        <label>END TIME</label>
+        <input type="datetime-local" id="endTime" class="styled-input" value="{{ settings.end_time }}">
         
-        <label style="font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 10px; display: block;">END TIME</label>
-        <input type="datetime-local" class="styled-input" value="{{ settings.end_time }}">
-        
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn btn-blue" style="flex: 1;">Update Timing Window</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="updateTiming()" class="btn btn-blue" style="flex: 1;">Update Timing Window</button>
             <button onclick="stopClock()" class="btn btn-red" style="flex: 1;">Stop Clock & End Election Now</button>
         </div>
     </div>
 
     <div class="card" style="border-top: 5px solid var(--danger);">
-        <h3 style="color: var(--danger);">System Master Reset</h3>
         <button onclick="resetElection()" class="btn btn-red">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
 <script>
+    function addCandidateRow() {
+        const container = document.getElementById('candidateList');
+        const row = document.createElement('div');
+        row.className = 'candidate-row';
+        row.innerHTML = `
+            <input type="text" class="styled-input candidate-name" placeholder="Name" style="flex: 2; margin: 0;">
+            <input type="text" class="styled-input candidate-symbol" placeholder="Emoji" style="flex: 0.5; margin: 0; text-align:center;">
+            <div style="flex: 1; text-align: right; font-weight: 700; color: var(--primary);">0 Votes</div>
+        `;
+        container.appendChild(row);
+    }
+
+    async function syncCandidates() {
+        const names = document.querySelectorAll('.candidate-name');
+        const symbols = document.querySelectorAll('.candidate-symbol');
+        let candidates = [];
+        names.forEach((n, i) => {
+            if(n.value) candidates.push({name: n.value, symbol: symbols[i].value || '🗳️'});
+        });
+        
+        const res = await fetch('/sync_candidates', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({candidates})
+        });
+        if(res.ok) alert("Election list saved and synchronized!");
+    }
+
+    async function updateTiming() {
+        const start = document.getElementById('startTime').value;
+        const end = document.getElementById('endTime').value;
+        const res = await fetch('/update_timing', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({start, end})
+        });
+        if(res.ok) alert("Election timing updated successfully!");
+    }
+
     async function stopClock() {
-        if (confirm("End Election Now? Students will no longer be able to cast votes.")) {
-            const response = await fetch('/stop_election', { method: 'POST' });
-            if (response.ok) {
-                alert("Election Closed Successfully!");
-                window.location.reload();
-            }
+        if(confirm("End Election Now?")) {
+            await fetch('/stop_election', {method: 'POST'});
+            alert("Election Stopped!");
+            window.location.reload();
         }
     }
 
     async function resetElection() {
-        if (confirm("DANGER: This will permanently wipe all blockchain ledger data. Proceed?")) {
-            const response = await fetch('/reset_election', { method: 'POST' });
-            if (response.ok) {
-                alert("Blockchain Reset to Block #1.");
-                window.location.reload();
-            }
+        if(confirm("Wipe all data?")) {
+            await fetch('/reset_election', {method: 'POST'});
+            window.location.reload();
         }
     }
 </script>
-
 </body>
 </html>
