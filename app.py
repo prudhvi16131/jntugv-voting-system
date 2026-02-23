@@ -68,7 +68,6 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
-    # Automatically reflects the edited list from the Admin page
     candidate_names = [c['name'] for c in ELECTION_SETTINGS["candidates"]]
     return render_template('index.html', candidates=candidate_names)
 
@@ -77,7 +76,6 @@ def cast_vote():
     student_id = request.form.get('student_id').upper().strip()
     candidate = request.form.get('candidate')
 
-    # 1. Range & Prefix Validation
     try:
         suffix = int(student_id[-4:])
         is_valid_prefix = student_id.startswith(ELECTION_SETTINGS["authorized_prefix"])
@@ -91,7 +89,6 @@ def cast_vote():
     except:
         return "<h1>Invalid ID</h1>"
 
-    # 2. Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
@@ -99,7 +96,6 @@ def cast_vote():
         })
         return "<h1>Already Voted</h1>"
 
-    # 3. Add Vote to Blockchain
     blockchain.nullifiers.add(nullifier)
     vote_data = {
         'candidate': candidate, 
@@ -113,11 +109,7 @@ def cast_vote():
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
-    
-    # Calculate Winner
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
-    
-    # Turnout percentage
     total_eligible = (ELECTION_SETTINGS["range_end"] - ELECTION_SETTINGS["range_start"]) + 1
     turnout = round((len(blockchain.nullifiers) / total_eligible) * 100, 1)
     
@@ -129,7 +121,6 @@ def admin_results():
                            logs=blockchain.security_logs,
                            current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
 
-# --- API FOR INTERACTIVE DASHBOARD ---
 @app.route('/update_settings', methods=['POST'])
 def update_settings():
     data = request.json
@@ -141,5 +132,7 @@ def update_settings():
         ELECTION_SETTINGS["end_time"] = data['end']
     return jsonify({"status": "success", "message": "Settings Synced!"})
 
+# --- RENDER DEPLOYMENT CONFIG ---
 if __name__ == '__main__':
-    app.run(debug=True)
+    # host='0.0.0.0' is required for Render to connect
+    app.run(host='0.0.0.0', port=10000)
