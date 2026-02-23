@@ -25,7 +25,6 @@
         .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         h1 { font-size: 1.5rem; margin: 0; color: #0f172a; }
 
-        /* Violation Table Styling */
         .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .log-table th { 
             text-align: left; padding: 15px; background: #f1f5f9; 
@@ -40,7 +39,6 @@
         }
         .ip-address { font-family: monospace; color: #475569; background: #f1f5f9; padding: 3px 6px; border-radius: 5px; }
 
-        /* Map Section Design */
         .map-section { 
             margin-top: 40px; padding: 25px; background: #eff6ff; 
             border-radius: 20px; border: 2px dashed #3b82f6; text-align: center; 
@@ -71,6 +69,7 @@
                     <th>Time (IST)</th>
                     <th>Violation</th>
                     <th>Violation Device IP</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,6 +79,9 @@
                     <td>{{ log.time }}</td>
                     <td><span class="badge-violation">{{ log.reason }}</span></td>
                     <td><span class="ip-address">{{ log.ip if log.ip else 'Unknown' }}</span></td>
+                    <td>
+                        <a href="https://www.google.com/maps/search/IP+Location+{{ log.ip }}" target="_blank" style="text-decoration:none;">📍 Trace</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -90,15 +92,17 @@
         {% endif %}
 
         <div class="map-section">
-            <span class="map-icon">📍</span>
+            <span class="map-icon">🗺️</span>
             <h3 style="margin: 0; color: #1e40af;">Digital Forensics & IP Location Map</h3>
             <p style="color: #60a5fa; font-size: 0.8rem; max-width: 500px; margin: 10px auto;">
-                The system automatically triangulates the physical location of the device used for unauthorized voting attempts via its IP Address.
+                The system uses Google Search indexing to resolve the geographical city-level location of unauthorized voting attempts via the recorded IP Address.
             </p>
             {% if logs %}
-            <a href="https://www.google.com/maps/search/{{ logs[-1].ip }}" target="_blank" class="map-link">
+            <a href="https://www.google.com/maps/search/IP+Location+{{ logs[-1].ip }}" target="_blank" class="map-link">
                 View Latest Threat Location on Map
             </a>
+            {% else %}
+            <button class="map-link" style="background: #cbd5e1; cursor: not-allowed;" disabled>No Threats to Map</button>
             {% endif %}
         </div>
     </div>
