@@ -27,6 +27,7 @@ ELECTION_SETTINGS = {
     "admin_secret": ADMIN_SECRET
 }
 
+# --- BLOCKCHAIN ENGINE ---
 class Blockchain:
     def __init__(self):
         self.chain = []
@@ -68,28 +69,47 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
-    return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=ELECTION_SETTINGS)
+    return render_template('index.html', 
+                           candidate_list=ELECTION_SETTINGS["candidates"], 
+                           settings=ELECTION_SETTINGS)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
+    # Stop Clock Check
     if not ELECTION_SETTINGS["is_active"]:
-        return "<h1>Election Closed</h1><p>The admin has stopped the election.</p><a href='/'>Back</a>"
-    
+        return "<h1>Election Closed</h1><p>The election has been stopped by the administrator.</p><a href='/'>Back</a>"
+
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
-    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    
+    # IP CLEANING FIX: Extract only the first IP from the proxy string
+    raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if raw_ip and ',' in raw_ip:
+        user_ip = raw_ip.split(',')[0].strip()
+    else:
+        user_ip = raw_ip
 
     try:
         suffix = int(student_id[-4:])
-        if not (student_id.startswith(ELECTION_SETTINGS["authorized_prefix"]) and ELECTION_SETTINGS["range_start"] <= suffix <= ELECTION_SETTINGS["range_end"]):
-            blockchain.security_logs.append({"id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Invalid ID Range", "ip": user_ip})
-            return "<h1>Access Denied</h1><a href='/'>Back</a>"
+        is_valid_prefix = student_id.startswith(ELECTION_SETTINGS["authorized_prefix"])
+        is_in_range = ELECTION_SETTINGS["range_start"] <= suffix <= ELECTION_SETTINGS["range_end"]
+
+        if not (is_valid_prefix and is_in_range):
+            blockchain.security_logs.append({
+                "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), 
+                "reason": "Invalid ID Range", "ip": user_ip
+            })
+            return "<h1>Access Denied</h1><p>Unauthorized ID.</p><a href='/'>Back</a>"
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
+    # Double Vote Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
-        blockchain.security_logs.append({"id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote Attempt", "ip": user_ip})
+        blockchain.security_logs.append({
+            "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), 
+            "reason": "Double Vote Attempt", "ip": user_ip
+        })
         return "<h1>Vote Already Cast</h1><a href='/'>Back</a>"
 
     blockchain.nullifiers.add(nullifier)
@@ -104,26 +124,36 @@ def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
     turnout = round((len(blockchain.nullifiers) / 80) * 100, 1)
-    return render_template('results.html', settings=ELECTION_SETTINGS, winner=winner, turnout=turnout, vote_counts=vote_counts, logs=blockchain.security_logs, candidates=ELECTION_SETTINGS["candidates"], current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
+    
+    return render_template('results.html', 
+                           settings=ELECTION_SETTINGS, 
+                           winner=winner, 
+                           turnout=turnout, 
+                           vote_counts=vote_counts, 
+                           logs=blockchain.security_logs, 
+                           candidates=ELECTION_SETTINGS["candidates"],
+                           current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
 
 @app.route(f'/admin/security-center/{ADMIN_SECRET}')
 def security_center():
-    return render_template('security_center.html', logs=blockchain.security_logs, settings=ELECTION_SETTINGS)
+    return render_template('security_center.html', 
+                           logs=blockchain.security_logs, 
+                           settings=ELECTION_SETTINGS)
 
-# --- NEW API ROUTES TO MAKE BUTTONS WORK ---
+# --- API ENDPOINTS FOR BUTTONS ---
 
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
     data = request.json
     ELECTION_SETTINGS["candidates"] = data['candidates']
-    return jsonify({"status": "success", "message": "Candidates Synchronized"})
+    return jsonify({"status": "success"})
 
 @app.route('/update_timing', methods=['POST'])
 def update_timing():
     data = request.json
     ELECTION_SETTINGS["start_time"] = data['start']
     ELECTION_SETTINGS["end_time"] = data['end']
-    return jsonify({"status": "success", "message": "Timing Updated"})
+    return jsonify({"status": "success"})
 
 @app.route('/stop_election', methods=['POST'])
 def stop_election():
