@@ -12,7 +12,7 @@ app.secret_key = "JNTUGV_BLOCKCHAIN_2026_MASTER_PRO"
 IST = pytz.timezone('Asia/Kolkata')
 ADMIN_SECRET = "JNTUGV_SECRET" 
 
-# Dynamic Election Data
+# Dynamic Election Data (Restored for Candidate Management)
 ELECTION_SETTINGS = {
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"}, 
@@ -23,7 +23,8 @@ ELECTION_SETTINGS = {
     "is_active": True,
     "authorized_prefix": "24V11A",
     "range_start": 501,
-    "range_end": 580
+    "range_end": 580,
+    "admin_secret": ADMIN_SECRET
 }
 
 # --- BLOCKCHAIN ENGINE ---
@@ -68,7 +69,6 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
-    # Pass full list for Symbols + Names in dropdown
     return render_template('index.html', 
                            candidate_list=ELECTION_SETTINGS["candidates"], 
                            settings=ELECTION_SETTINGS)
@@ -78,8 +78,7 @@ def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
     
-    # Capture User IP (Works on Render and local)
-    # X-Forwarded-For is necessary to get the actual client IP on Render
+    # Advanced IP Capture for Map Location
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if user_ip and ',' in user_ip:
         user_ip = user_ip.split(',')[0]
@@ -91,38 +90,27 @@ def cast_vote():
 
         if not (is_valid_prefix and is_in_range):
             blockchain.security_logs.append({
-                "id": student_id, 
-                "time": datetime.now(IST).strftime("%H:%M:%S"), 
-                "reason": "Invalid ID Range",
-                "ip": user_ip
+                "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), 
+                "reason": "Invalid ID Range", "ip": user_ip
             })
             return "<h1>Access Denied</h1><p>Unauthorized ID.</p><a href='/'>Back</a>"
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
-            "id": student_id, 
-            "time": datetime.now(IST).strftime("%H:%M:%S"), 
-            "reason": "Double Vote Attempt",
-            "ip": user_ip
+            "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), 
+            "reason": "Double Vote Attempt", "ip": user_ip
         })
-        return "<h1>Vote Already Cast</h1><p>Blockchain prevents duplicate entries.</p><a href='/'>Back</a>"
+        return "<h1>Vote Already Cast</h1><a href='/'>Back</a>"
 
-    # Add to Blockchain & Generate Receipt
     blockchain.nullifiers.add(nullifier)
-    timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
-    
     blockchain.pending_votes.append({'candidate': candidate, 'receipt': receipt_id})
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    return render_template('success.html', 
-                           candidate=candidate, 
-                           receipt=receipt_id, 
-                           timestamp=timestamp)
+    return render_template('success.html', candidate=candidate, receipt=receipt_id, timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
 
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_ledger():
@@ -132,45 +120,41 @@ def audit_ledger():
         for block in blockchain.chain:
             for vote in block['votes']:
                 if vote.get('receipt') == searched_id:
-                    result = {
-                        "candidate": vote['candidate'], 
-                        "timestamp": block['timestamp'], 
-                        "block_index": block['index']
-                    }
+                    result = {"candidate": vote['candidate'], "timestamp": block['timestamp'], "block_index": block['index']}
                     break
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
+# --- ADMIN DASHBOARD (RESTORED PIC 2 FEATURES) ---
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     winner = max(vote_counts, key=vote_counts.get) if blockchain.nullifiers else "TBD"
-    total_eligible = (ELECTION_SETTINGS["range_end"] - ELECTION_SETTINGS["range_start"]) + 1
+    total_eligible = 80 
+    turnout = round((len(blockchain.nullifiers) / total_eligible) * 100, 1)
     
     return render_template('results.html', 
                            settings=ELECTION_SETTINGS, 
                            winner=winner, 
-                           turnout=round((len(blockchain.nullifiers) / total_eligible) * 100, 1), 
+                           turnout=turnout, 
                            vote_counts=vote_counts, 
                            logs=blockchain.security_logs, 
-                           current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
+                           candidates=ELECTION_SETTINGS["candidates"],
+                           current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
+
+# --- NEW: SECURITY CENTER ROUTE ---
+@app.route(f'/admin/security-center/{ADMIN_SECRET}')
+def security_center():
+    return render_template('security_center.html', 
+                           logs=blockchain.security_logs, 
+                           settings=ELECTION_SETTINGS)
 
 # --- API ENDPOINTS ---
-
-@app.route('/update_settings', methods=['POST'])
-def update_settings():
-    data = request.json
-    if 'candidates' in data: ELECTION_SETTINGS["candidates"] = data['candidates']
-    if 'start' in data: ELECTION_SETTINGS["start_time"] = data['start']
-    if 'end' in data: ELECTION_SETTINGS["end_time"] = data['end']
-    return jsonify({"status": "success"})
-
 @app.route('/reset_election', methods=['POST'])
 def reset_election():
     global blockchain
     blockchain = Blockchain()
     return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
 
-# --- DEPLOYMENT ---
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)

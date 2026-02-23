@@ -4,138 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | JNTU-GV Blockchain</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --primary: #2563eb; 
             --danger: #ef4444; 
             --success: #10b981;
+            --warning: #f59e0b;
             --bg: #f8fafc;
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 800px; margin: 0 auto; }
         
-        /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .card h3 { margin: 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-        .card p { margin: 10px 0 0; font-size: 2rem; font-weight: 700; }
-
-        /* Chart & Log Layout */
-        .main-grid { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 20px; align-items: start; }
-        
-        /* Table Styling */
-        .log-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow-x: auto; }
-        .log-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
-        .log-table th { text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-weight: 600; }
-        .log-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-
-        .badge-red { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-        .ip-text { font-family: monospace; color: #475569; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-
-        /* Header Buttons */
-        .btn-reset { 
-            background: var(--danger); color: white; border: none; padding: 12px 24px; 
-            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border: 1px solid #e2e8f0; 
+            margin-bottom: 20px;
         }
-        .btn-reset:hover { background: #dc2626; transform: translateY(-2px); }
+
+        h3 { margin-top: 0; font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+        
+        /* Pic 2 Style Inputs */
+        .styled-input {
+            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px;
+            background: #fcfcfc; font-size: 0.9rem; box-sizing: border-box; margin-bottom: 10px;
+        }
+
+        .btn-confirm {
+            width: 100%; background: var(--primary); color: white; padding: 14px;
+            border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; margin-top: 5px; transition: 0.3s;
+        }
+
+        /* Stats Row */
+        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card { flex: 1; padding: 20px; border-radius: 15px; color: white; text-align: center; }
+
+        /* Security Link Section */
+        .security-banner {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fffbeb; border: 1px solid #fef3c7; padding: 15px 20px;
+            border-radius: 15px; margin-bottom: 20px; text-decoration: none;
+        }
+
+        .badge-count {
+            background: var(--danger); color: white; padding: 2px 8px;
+            border-radius: 20px; font-size: 0.75rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <div>
-            <h1 style="margin: 0; font-size: 1.75rem;">JNTU-GV Election Admin</h1>
-            <p style="color: #64748b; margin: 5px 0 0;">Blockchain Live Status | {{ current_time }}</p>
-        </div>
-        <button onclick="resetElection()" class="btn-reset">Master Reset Blockchain</button>
-    </header>
+    <div class="card" style="text-align: center; border-top: 5px solid var(--primary);">
+        <h1 style="margin: 0; font-size: 1.5rem;">JNTU-GV Admin Dashboard</h1>
+        <p style="color: #64748b; font-size: 0.8rem; margin: 5px 0 0;">BLOCKCHAIN ELECTORAL ANALYTICS & MASTER CONTROL</p>
+    </div>
 
-    <div class="stats-grid">
-        <div class="card">
-            <h3>Leading Candidate</h3>
-            <p style="color: var(--primary);">{{ winner }}</p>
+    <div class="stats-row">
+        <div class="stat-card" style="background: var(--primary);">
+            <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.8;">Leading Candidate</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">{{ winner }}</div>
         </div>
-        <div class="card">
-            <h3>Student Turnout</h3>
-            <p>{{ turnout }}%</p>
-        </div>
-        <div class="card">
-            <h3>Network Status</h3>
-            <p style="color: var(--success);">ACTIVE</p>
+        <div class="stat-card" style="background: #7c3aed;">
+            <div style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.8;">Voter Turnout</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">{{ turnout }}%</div>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="card">
-            <h3>Vote Distribution</h3>
-            <div style="margin-top: 20px;">
-                <canvas id="voteChart"></canvas>
+    <a href="/admin/security-center/{{ settings.admin_secret }}" class="security-banner">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.2rem;">⚠️</span>
+            <div>
+                <div style="font-weight: 700; color: #92400e;">Security Violations Detected</div>
+                <div style="font-size: 0.75rem; color: #b45309;">Track Attempt IDs, IPs & Map Locations</div>
             </div>
         </div>
+        <div class="badge-count">{{ logs|length }}</div>
+    </a>
 
-        <div class="log-container">
-            <h3 style="margin: 0;">⚠️ Security Alerts & Violations</h3>
-            <table class="log-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Attempted ID</th>
-                        <th>Violation</th>
-                        <th>Device IP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in logs %}
-                    <tr>
-                        <td>{{ log.time }}</td>
-                        <td style="font-weight: 700; color: #1e293b;">{{ log.id }}</td>
-                        <td><span class="badge-red">{{ log.reason }}</span></td>
-                        <td><span class="ip-text">{{ log.ip if log.ip else '0.0.0.0' }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if not logs %}
-            <p style="text-align: center; color: #94a3b8; margin-top: 20px;">No security threats detected.</p>
-            {% endif %}
+    <div class="card">
+        <h3>Candidate Management & Live Tally</h3>
+        {% for c in candidates %}
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+            <input type="text" class="styled-input" value="{{ c.name }}" style="margin-bottom: 0; flex: 2;" readonly>
+            <div style="background: #f1f5f9; padding: 10px 15px; border-radius: 12px; font-weight: bold;">{{ c.symbol }}</div>
+            <div style="flex: 1; text-align: right; font-weight: 700; color: var(--primary);">{{ vote_counts[c.name] }} Votes</div>
         </div>
+        {% endfor %}
+        <button class="btn-confirm" style="background: #64748b; margin-top: 15px;">+ Add New Candidate Row</button>
+        <button class="btn-confirm" style="background: var(--success);">Synchronize & Save Election List</button>
+    </div>
+
+    <div class="card">
+        <h3>Election Schedule (IST)</h3>
+        <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">START TIME</label>
+        <select class="styled-input"><option>{{ settings.start_time }}</option></select>
+        
+        <label style="font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 10px; display: block;">END TIME</label>
+        <select class="styled-input"><option>{{ settings.end_time }}</option></select>
+        
+        <button class="btn-confirm">Update Timing Window</button>
+    </div>
+
+    <div class="card" style="border-top: 5px solid var(--danger);">
+        <h3 style="color: var(--danger);">System Master Reset</h3>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px;">Warning: This action will permanently wipe the blockchain ledger and all recorded votes.</p>
+        <button onclick="resetElection()" class="btn-confirm" style="background: var(--danger);">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
 <script>
-    // Initialize Bar Chart for Results
-    const ctx = document.getElementById('voteChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [{% for name in vote_counts.keys() %}"{{ name }}",{% endfor %}],
-            datasets: [{
-                label: 'Votes',
-                data: [{% for count in vote_counts.values() %}{{ count }},{% endfor %}],
-                backgroundColor: ['#2563eb', '#7c3aed', '#db2777', '#f59e0b'],
-                borderRadius: 10,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
-
-    // Master Reset Protocol
     async function resetElection() {
-        if (confirm("CRITICAL WARNING: This will permanently wipe the blockchain ledger and all security logs. Proceed?")) {
+        if (confirm("CRITICAL: Wipe entire blockchain? This cannot be undone.")) {
             const response = await fetch('/reset_election', { method: 'POST' });
             if (response.ok) {
-                alert("Blockchain has been wiped and reset to Block #1.");
+                alert("Blockchain has been fully reset.");
                 window.location.reload();
             }
         }

@@ -1,0 +1,32 @@
+<div class="container">
+    <div class="card">
+        <h1>Detailed Security Logs</h1>
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Attempted ID</th>
+                    <th>Time (IST)</th>
+                    <th>Violation</th>
+                    <th>Device IP</th>
+                    <th>Location Map</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.id }}</td>
+                    <td>{{ log.time }}</td>
+                    <td><span class="badge-red">{{ log.reason }}</span></td>
+                    <td>{{ log.ip }}</td>
+                    <td>
+                        <a href="https://www.google.com/maps/search/{{ log.ip }}" target="_blank" style="color:#2563eb;">
+                            📍 View on Map
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="javascript:history.back()" class="back-link">Back to Dashboard</a>
+    </div>
+</div>
