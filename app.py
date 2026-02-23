@@ -6,7 +6,7 @@ import pytz
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-app.secret_key = "JNTUGV_BLOCKCHAIN_2026_MASTER"
+app.secret_key = "JNTUGV_BLOCKCHAIN_2026_FINAL_PRO"
 
 # --- CONFIGURATION ---
 IST = pytz.timezone('Asia/Kolkata')
@@ -19,7 +19,7 @@ ELECTION_SETTINGS = {
         {"name": "Laxman", "symbol": "🐘"}
     ],
     "start_time": "2026-02-23T09:00",
-    "end_time": "2026-02-23T18:00", # Set to 6 PM IST
+    "end_time": "2026-02-23T18:00",
     "is_active": True,
     "authorized_prefix": "24V11A",
     "range_start": 501,
@@ -62,7 +62,6 @@ class Blockchain:
                     count += 1
         return count
 
-# Initialize Global Blockchain
 blockchain = Blockchain()
 
 # --- ROUTES ---
@@ -70,7 +69,6 @@ blockchain = Blockchain()
 @app.route('/')
 def index():
     candidate_names = [c['name'] for c in ELECTION_SETTINGS["candidates"]]
-    # Passing 'settings' is critical for the countdown timer in index.html
     return render_template('index.html', candidates=candidate_names, settings=ELECTION_SETTINGS)
 
 @app.route('/cast_vote', methods=['POST'])
@@ -78,7 +76,7 @@ def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
 
-    # 1. Range Validation
+    # 1. Range Validation (24V11A0501 - 24V11A0580)
     try:
         suffix = int(student_id[-4:])
         is_valid_prefix = student_id.startswith(ELECTION_SETTINGS["authorized_prefix"])
@@ -88,9 +86,9 @@ def cast_vote():
             blockchain.security_logs.append({
                 "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Out of Range"
             })
-            return "<h1>Access Denied</h1><p>ID outside voting range.</p><a href='/'>Back</a>"
+            return "<h1>Access Denied</h1><p>ID outside authorized range.</p><a href='/'>Back</a>"
     except:
-        return "<h1>Invalid ID</h1><p>Please enter a valid Roll Number.</p><a href='/'>Back</a>"
+        return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
     # 2. Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
@@ -98,18 +96,27 @@ def cast_vote():
         blockchain.security_logs.append({
             "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote"
         })
-        return "<h1>Vote Already Cast</h1><p>This ID has already participated.</p><a href='/'>Back</a>"
+        return "<h1>Vote Already Cast</h1><p>Blockchain prevents duplicate entries.</p><a href='/'>Back</a>"
 
-    # 3. Add Vote to Blockchain
+    # 3. Add to Blockchain & Generate Receipt
     blockchain.nullifiers.add(nullifier)
-    vote_data = {
-        'candidate': candidate, 
-        'receipt': hashlib.sha256(str(time.time()).encode()).hexdigest()[:10].upper()
-    }
+    timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
+    receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
+    
+    vote_data = {'candidate': candidate, 'receipt': receipt_id}
     blockchain.pending_votes.append(vote_data)
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    return f"<h1>Vote Success!</h1><p>Receipt ID: {vote_data['receipt']}</p><a href='/'>Back to Home</a>"
+    # NEW: Renders success.html receipt instead of plain text
+    return render_template('success.html', 
+                           candidate=candidate, 
+                           receipt=receipt_id, 
+                           timestamp=timestamp)
+
+@app.route('/audit')
+def audit_ledger():
+    # Renders your existing audit.html with the blockchain data
+    return render_template('audit.html', chain=blockchain.chain)
 
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
@@ -126,17 +133,14 @@ def admin_results():
                            logs=blockchain.security_logs,
                            current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
 
-# --- ADMIN API ENDPOINTS ---
+# --- API ENDPOINTS ---
 
 @app.route('/update_settings', methods=['POST'])
 def update_settings():
     data = request.json
-    if 'candidates' in data:
-        ELECTION_SETTINGS["candidates"] = data['candidates']
-    if 'start' in data:
-        ELECTION_SETTINGS["start_time"] = data['start']
-    if 'end' in data:
-        ELECTION_SETTINGS["end_time"] = data['end']
+    if 'candidates' in data: ELECTION_SETTINGS["candidates"] = data['candidates']
+    if 'start' in data: ELECTION_SETTINGS["start_time"] = data['start']
+    if 'end' in data: ELECTION_SETTINGS["end_time"] = data['end']
     return jsonify({"status": "success"})
 
 @app.route('/reset_election', methods=['POST'])
@@ -144,8 +148,8 @@ def reset_election():
     global blockchain
     blockchain = Blockchain()
     ELECTION_SETTINGS["candidates"] = [{"name": "Candidate 1", "symbol": "🗳️"}]
-    return jsonify({"status": "success", "message": "System Fully Reset"})
+    return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
 
-# --- DEPLOYMENT CONFIG ---
+# --- DEPLOYMENT ---
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
