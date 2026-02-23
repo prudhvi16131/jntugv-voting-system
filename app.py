@@ -6,13 +6,13 @@ import pytz
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-app.secret_key = "JNTUGV_BLOCKCHAIN_2026_FINAL"
+app.secret_key = "JNTUGV_BLOCKCHAIN_2026_MASTER"
 
 # --- CONFIGURATION ---
 IST = pytz.timezone('Asia/Kolkata')
 ADMIN_SECRET = "JNTUGV_SECRET" 
 
-# Dynamic Election Data (Editable via Admin Dashboard)
+# Dynamic Election Data
 ELECTION_SETTINGS = {
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"}, 
@@ -62,6 +62,7 @@ class Blockchain:
                     count += 1
         return count
 
+# Initialize Global Blockchain
 blockchain = Blockchain()
 
 # --- ROUTES ---
@@ -73,9 +74,10 @@ def index():
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
-    student_id = request.form.get('student_id').upper().strip()
+    student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
 
+    # 1. Range Validation
     try:
         suffix = int(student_id[-4:])
         is_valid_prefix = student_id.startswith(ELECTION_SETTINGS["authorized_prefix"])
@@ -83,19 +85,21 @@ def cast_vote():
 
         if not (is_valid_prefix and is_in_range):
             blockchain.security_logs.append({
-                "id": student_id, "time": datetime.now(IST).strftime("%H:%M"), "reason": "Out of Range"
+                "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Out of Range"
             })
-            return "<h1>Access Denied</h1><p>ID outside voting range.</p>"
+            return "<h1>Access Denied</h1><p>ID outside voting range.</p><a href='/'>Back</a>"
     except:
-        return "<h1>Invalid ID</h1>"
+        return "<h1>Invalid ID</h1><p>Please enter a valid Roll Number.</p><a href='/'>Back</a>"
 
+    # 2. Double Voting Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
-            "id": student_id, "time": datetime.now(IST).strftime("%H:%M"), "reason": "Double Vote"
+            "id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote"
         })
-        return "<h1>Already Voted</h1>"
+        return "<h1>Vote Already Cast</h1><p>This ID has already participated.</p><a href='/'>Back</a>"
 
+    # 3. Add Vote to Blockchain
     blockchain.nullifiers.add(nullifier)
     vote_data = {
         'candidate': candidate, 
@@ -104,7 +108,7 @@ def cast_vote():
     blockchain.pending_votes.append(vote_data)
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    return f"<h1>Vote Success!</h1><p>Receipt ID: {vote_data['receipt']}</p><a href='/'>Back</a>"
+    return f"<h1>Vote Success!</h1><p>Receipt ID: {vote_data['receipt']}</p><a href='/'>Back to Home</a>"
 
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
@@ -121,6 +125,8 @@ def admin_results():
                            logs=blockchain.security_logs,
                            current_time=datetime.now(IST).strftime("%d/%m/%Y, %H:%M"))
 
+# --- ADMIN API ENDPOINTS ---
+
 @app.route('/update_settings', methods=['POST'])
 def update_settings():
     data = request.json
@@ -130,9 +136,17 @@ def update_settings():
         ELECTION_SETTINGS["start_time"] = data['start']
     if 'end' in data:
         ELECTION_SETTINGS["end_time"] = data['end']
-    return jsonify({"status": "success", "message": "Settings Synced!"})
+    return jsonify({"status": "success"})
 
-# --- RENDER DEPLOYMENT CONFIG ---
+@app.route('/reset_election', methods=['POST'])
+def reset_election():
+    global blockchain
+    # Fully Clear Blockchain and Security Logs
+    blockchain = Blockchain()
+    # Reset default candidates to prevent empty page
+    ELECTION_SETTINGS["candidates"] = [{"name": "Candidate 1", "symbol": "🗳️"}]
+    return jsonify({"status": "success", "message": "System Fully Reset"})
+
+# --- DEPLOYMENT CONFIG ---
 if __name__ == '__main__':
-    # host='0.0.0.0' is required for Render to connect
     app.run(host='0.0.0.0', port=10000)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Secure Admin Dashboard</title>
+    <title>JNTU-GV | Admin Control Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -40,6 +40,7 @@
         .btn-green { background: var(--green); }
         .btn-blue { background: var(--primary); }
         .btn-orange { background: var(--orange); }
+        .btn-danger { background: var(--danger); }
         
         .delete-btn { background: #fee2e2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: bold; }
 
@@ -54,7 +55,7 @@
 
 <div class="container">
     <h2>JNTU-GV Admin Dashboard</h2>
-    <div class="subtitle">Blockchain Electoral Analytics & Control</div>
+    <div class="subtitle">Blockchain Electoral Analytics & Master Control</div>
 
     <div class="stats-grid">
         <div class="stat-mini">
@@ -84,7 +85,7 @@
     </div>
 
     <div class="card" style="border-top: 5px solid var(--orange);">
-        <div class="section-title" style="color: var(--orange);">⚠️ Security Alerts (Range & Double Voting)</div>
+        <div class="section-title" style="color: var(--orange);">⚠️ Security Alerts</div>
         <table class="alert-table">
             <thead>
                 <tr><th>ATTEMPTED ID</th><th>TIME (IST)</th><th>VIOLATION</th></tr>
@@ -114,7 +115,12 @@
             <input type="datetime-local" id="end_time" value="{{ settings.end_time }}">
         </div>
         <button class="btn btn-blue" onclick="saveSchedule()">Update Timing Window</button>
-        <button class="btn btn-orange" onclick="alert('Election has been manually finalized.')">🛑 Stop Clock Now</button>
+    </div>
+
+    <div class="card" style="border-top: 5px solid var(--danger); margin-top: 30px;">
+        <div class="section-title" style="color: var(--danger);">System Master Reset</div>
+        <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 15px;">Warning: This will wipe all votes, clear the blockchain history, and reset candidate data.</p>
+        <button class="btn btn-danger" onclick="masterReset()">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
@@ -153,7 +159,18 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ start: start, end: end })
-        }).then(res => res.json()).then(data => alert("Election Schedule Updated!"));
+        }).then(res => res.json()).then(data => alert("Schedule Updated!"));
+    }
+
+    function masterReset() {
+        if (confirm("CRITICAL WARNING: This will permanently delete ALL election data and reset the blockchain. Proceed?")) {
+            fetch('/reset_election', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                window.location.reload();
+            });
+        }
     }
 </script>
 
