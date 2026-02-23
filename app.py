@@ -62,6 +62,7 @@ class Blockchain:
                     count += 1
         return count
 
+# Initialize Global Blockchain
 blockchain = Blockchain()
 
 # --- ROUTES ---
@@ -167,6 +168,7 @@ def reset_election():
     ELECTION_SETTINGS["candidates"] = [{"name": "Candidate 1", "symbol": "🗳️"}]
     return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
 
-# --- DEPLOYMENT ---
+# --- DEPLOYMENT CONFIG FOR RENDER ---
 if __name__ == '__main__':
+    # host='0.0.0.0' and port 10000 are essential for Render stability
     app.run(host='0.0.0.0', port=10000)
