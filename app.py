@@ -107,16 +107,33 @@ def cast_vote():
     blockchain.pending_votes.append(vote_data)
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
-    # NEW: Renders success.html receipt instead of plain text
     return render_template('success.html', 
                            candidate=candidate, 
                            receipt=receipt_id, 
                            timestamp=timestamp)
 
-@app.route('/audit')
+# --- UPDATED AUDIT ROUTE WITH SEARCH LOGIC ---
+@app.route('/audit', methods=['GET', 'POST'])
 def audit_ledger():
-    # Renders your existing audit.html with the blockchain data
-    return render_template('audit.html', chain=blockchain.chain)
+    searched_id = None
+    result = None
+
+    if request.method == 'POST':
+        searched_id = request.form.get('receipt', '').upper().strip()
+        
+        # Search blockchain for the receipt
+        for block in blockchain.chain:
+            for vote in block['votes']:
+                if vote.get('receipt') == searched_id:
+                    result = {
+                        "candidate": vote['candidate'],
+                        "timestamp": block['timestamp'],
+                        "block_index": block['index']
+                    }
+                    break
+            if result: break
+
+    return render_template('audit.html', searched_id=searched_id, result=result)
 
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
