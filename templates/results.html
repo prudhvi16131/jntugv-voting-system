@@ -3,221 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Admin Dashboard</title>
+    <title>JNTU-GV Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #9333ea;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --bg-light: #f8faff;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        .dashboard { max-width: 500px; margin: 0 auto; text-align: center; }
+        h2 { font-weight: 700; margin-bottom: 5px; }
+        .subtitle { font-size: 0.75rem; color: #64748b; margin-bottom: 25px; font-weight: 600; }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-light); 
-            margin: 0; 
-            padding: 20px; 
-            color: var(--text-main); 
-        }
+        /* Stats Cards */
+        .card { background: white; border-radius: 25px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); text-align: left; position: relative; overflow: hidden; }
+        .stat-card { border-left: 8px solid #3b82f6; }
+        .stat-card.voter { border-left-color: #a855f7; }
+        .stat-card.integrity { border-left-color: #10b981; width: 60%; }
+        .label { font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .value { font-size: 1.3rem; font-weight: 700; margin-top: 8px; color: #1e293b; }
+        .blue { color: #2563eb; } .purple { color: #9333ea; } .green { color: #10b981; }
 
-        .dashboard-container { 
-            max-width: 500px; 
-            margin: 0 auto; 
-            text-align: center; 
-        }
-        
-        h1 { 
-            font-weight: 700; 
-            font-size: 1.8rem; 
-            margin-bottom: 5px; 
-            color: #0f172a;
-        }
+        /* Candidate Management */
+        .mgmt-title { font-size: 0.85rem; font-weight: 700; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-box { flex: 2; background: #fff; border: 1.5px solid #e2e8f0; padding: 12px; border-radius: 12px; font-size: 0.85rem; }
+        .symbol-box { flex: 1; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-        .subtitle { 
-            font-size: 0.75rem; 
-            color: var(--text-sub); 
-            margin-bottom: 25px; 
-            text-transform: uppercase; 
-            letter-spacing: 1.5px; 
-            font-weight: 600;
-        }
+        /* Buttons */
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; font-size: 0.9rem; margin-top: 10px; color: white; transition: 0.3s; }
+        .btn-purple { background: #9333ea; }
+        .btn-green { background: #10b981; }
+        .btn-blue { background: #2563eb; }
+        .btn-orange { background: #f59e0b; }
 
-        /* Stats Card Grid */
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-bottom: 15px; 
-        }
-
-        .stat-box { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 20px; 
-            text-align: left; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
-            border-left: 6px solid var(--primary); 
-            transition: transform 0.2s;
-        }
-
-        .stat-box:hover { transform: translateY(-3px); }
-        .stat-box.voter { border-left-color: var(--secondary); }
-        .stat-box.integrity { 
-            border-left-color: var(--success); 
-            grid-column: span 2; 
-        }
-
-        .stat-label { 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            color: #94a3b8; 
-            text-transform: uppercase; 
-        }
-
-        .stat-value { 
-            font-size: 1.25rem; 
-            margin-top: 8px; 
-            font-weight: 700; 
-        }
-
-        .blue-text { color: var(--primary); }
-        .purple-text { color: var(--secondary); }
-        .green-text { color: var(--success); }
-
-        /* Candidate Section */
-        .section-card { 
-            background: white; 
-            border-radius: 25px; 
-            padding: 24px; 
-            margin-top: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
-        }
-
-        .section-title { 
-            font-size: 0.9rem; 
-            font-weight: 700; 
-            text-align: left; 
-            margin-bottom: 20px; 
-            color: #334155;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title::before {
-            content: "";
-            width: 4px;
-            height: 18px;
-            background: var(--primary);
-            margin-right: 10px;
-            border-radius: 10px;
-        }
-        
-        .vote-row { 
-            display: flex; 
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc; 
-            border: 1px solid #f1f5f9; 
-            padding: 14px 18px; 
-            border-radius: 15px; 
-            margin-bottom: 12px; 
-            font-size: 0.95rem;
-        }
-
-        .vote-row strong { color: var(--primary); }
-
-        .symbol-badge { 
-            background: #fff; 
-            border: 1px solid #e2e8f0; 
-            padding: 4px 10px;
-            border-radius: 8px; 
-            font-size: 1.1rem; 
-        }
-
-        .btn { 
-            width: 100%; 
-            padding: 15px; 
-            border: none; 
-            border-radius: 15px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn-sync { background: var(--success); color: white; }
-        .btn-sync:hover { background: #059669; }
-        
-        .btn-stop { background: var(--warning); color: white; margin-top: 15px; }
-        .btn-stop:hover { background: #d97706; }
-
-        .time-display {
-            background: #f1f5f9;
-            padding: 10px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 10px;
-        }
+        /* Security Alerts */
+        .alert-card { border-left: 8px solid #f59e0b; }
+        .alert-table { width: 100%; font-size: 0.7rem; text-align: center; margin-top: 15px; }
+        .alert-table th { color: #94a3b8; padding: 10px; border-bottom: 1px solid #f8fafc; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <h1>JNTU-GV Admin Dashboard</h1>
-    <div class="subtitle">Secure Blockchain-Based Electoral Analytics</div>
+<div class="dashboard">
+    <h2>JNTU-GV Admin Dashboard</h2>
+    <div class="subtitle">Blockchain Electoral Control & Security Logs</div>
 
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="stat-label">Leading Candidate</div>
-            <div class="stat-value blue-text">
-                {{ winner if winner else "TBD" }}
-            </div>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div class="card stat-card" style="flex: 1;">
+            <div class="label">Leading Candidate</div>
+            <div class="value blue">{{ winner }}</div>
         </div>
-        <div class="stat-box voter">
-            <div class="stat-label">Voter Turnout</div>
-            <div class="stat-value purple-text">{{ turnout }}%</div>
-        </div>
-        <div class="stat-box integrity">
-            <div class="stat-label">Blockchain Integrity</div>
-            <div class="stat-value green-text">Merkle Root: Secure ✓</div>
+        <div class="card stat-card voter" style="flex: 1;">
+            <div class="label">Voter Turnout</div>
+            <div class="value purple">{{ turnout }}%</div>
         </div>
     </div>
+    <div class="card stat-card integrity">
+        <div class="label">System Integrity</div>
+        <div class="value green">Merkle Root Active</div>
+    </div>
 
-    <div class="section-card">
-        <div class="section-title">Live Candidate Tally</div>
-        {% for name, count in vote_counts.items() %}
-        <div class="vote-row">
-            <span>{{ name }}</span>
-            <div>
-                <strong>{{ count }}</strong>
-                <span style="color: #94a3b8; font-size: 0.8rem; margin: 0 5px;">|</span>
-                <span class="symbol-badge">🗳️</span>
-            </div>
+    <div class="card">
+        <div class="mgmt-title">Election Candidate Management</div>
+        {% for c in candidates %}
+        <div class="row">
+            <div class="input-box">{{ c.name }} ({{ vote_counts[c.name] }} Votes)</div>
+            <div class="symbol-box">{{ c.symbol }}</div>
         </div>
         {% endfor %}
-        <button class="btn btn-sync">Synchronize Node Results</button>
+        <button class="btn btn-purple">+ Add New Candidate Row</button>
+        <button class="btn btn-green">Synchronize & Save Election List</button>
     </div>
 
-    <div class="section-card">
-        <div class="section-title">Election Timeline (IST)</div>
-        <div class="time-display">
-            Server Time: {{ current_time }}
+    <div class="card alert-card">
+        <div class="mgmt-title">⚠️ Security Alerts (Unauthorized & Double Voting)</div>
+        <table class="alert-table">
+            <thead>
+                <tr><th>ATTEMPTED ID</th><th>TIMESTAMP (IST)</th><th>VIOLATION</th></tr>
+            </thead>
+            <tbody>
+                {% if not logs %}
+                <tr><td colspan="3" style="padding: 20px; color: #94a3b8;">No security threats detected.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="mgmt-title">Election Schedule (IST)</div>
+        <div class="row">
+            <div class="input-box" style="text-align: center;">Start: {{ current_time }}</div>
         </div>
-        <p style="font-size: 0.75rem; color: #94a3b8; margin: 15px 0;">
-            All votes are timestamped and immutable.
-        </p>
-        <button class="btn btn-stop" onclick="alert('Election Terminated. Generating final reports...')">
-            🛑 Terminate & Finalize Election
-        </button>
+        <button class="btn btn-blue">Update Election Window</button>
+        <button class="btn btn-orange" onclick="stopClock()">🛑 Stop Clock & End Election Now</button>
     </div>
 </div>
+
+<script>
+    function stopClock() {
+        fetch('/stop_election', {method: 'POST'})
+        .then(res => alert('Election has been terminated and blockchain locked.'));
+    }
+</script>
 
 </body>
 </html>
