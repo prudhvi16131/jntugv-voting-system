@@ -2,200 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV Admin | Blockchain Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>JNTU-GV Admin | Interactive Dashboard</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --purple: #9333ea;
-            --green: #10b981;
-            --orange: #f59e0b;
-            --danger: #ef4444;
-            --bg: #f1f5f9;
-        }
-
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg); 
-            margin: 0; 
-            padding: 20px; 
-            color: #1e293b; 
-        }
-
-        .dashboard-wrapper { 
-            max-width: 500px; 
-            margin: 0 auto; 
-            text-align: center; 
-        }
-
-        h2 { font-weight: 700; margin-bottom: 5px; color: #0f172a; }
-        .subtitle { 
-            font-size: 0.75rem; 
-            color: #64748b; 
-            margin-bottom: 25px; 
-            font-weight: 600; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-        }
-
-        /* Stats Section */
-        .stats-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        
-        .card { 
-            background: white; 
-            border-radius: 25px; 
-            padding: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
-            text-align: left; 
-            position: relative;
-        }
-
-        .stat-card { border-left: 8px solid var(--primary); flex: 1; }
-        .stat-card.voter { border-left-color: var(--purple); }
-        .stat-card.integrity { border-left-color: var(--green); width: 60%; margin-bottom: 20px; }
-
-        .label { font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-        .value { font-size: 1.3rem; font-weight: 700; margin-top: 8px; }
-
-        /* Candidate & Security Sections */
-        .section-card { background: white; border-radius: 25px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .section-title { 
-            font-size: 0.85rem; 
-            font-weight: 700; 
-            border-bottom: 1px solid #f1f5f9; 
-            padding-bottom: 15px; 
-            margin-bottom: 20px; 
-            text-align: left;
-            display: flex;
-            align-items: center;
-        }
-
-        .vote-row { display: flex; gap: 10px; margin-bottom: 12px; }
-        .input-display { 
-            flex: 3; 
-            background: #f8fafc; 
-            border: 1.5px solid #e2e8f0; 
-            padding: 12px; 
-            border-radius: 12px; 
-            font-size: 0.85rem; 
-            font-weight: 600;
-        }
-        .symbol-display { 
-            flex: 1; 
-            background: #f8fafc; 
-            border: 1.5px solid #e2e8f0; 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.2rem; 
-        }
-
-        /* Alert Table */
-        .alert-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-        .alert-table th { color: #94a3b8; text-align: center; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-        .alert-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #f8fafc; }
-        .badge-red { background: #fee2e2; color: var(--danger); padding: 3px 8px; border-radius: 8px; font-weight: 600; }
-
-        /* Controls */
-        .btn { 
-            width: 100%; 
-            padding: 16px; 
-            border: none; 
-            border-radius: 15px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            font-size: 0.9rem; 
-            margin-top: 10px; 
-            transition: 0.2s;
-        }
-        .btn-purple { background: var(--purple); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-orange { background: var(--orange); color: white; }
-
-        .time-banner { background: #f8fafc; padding: 12px; border-radius: 12px; font-weight: 600; margin-bottom: 15px; font-size: 0.9rem; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 10px; flex: 1; }
+        .btn { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; width: 100%; margin-top: 10px; }
+        .btn-green { background: #10b981; }
+        .btn-blue { background: #2563eb; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-wrapper">
-    <h2>JNTU-GV Admin Dashboard</h2>
-    <div class="subtitle">Blockchain Electoral Control & Security Logs</div>
+<div style="max-width: 500px; margin: 0 auto;">
+    <h2>Admin Control Panel</h2>
 
-    <div class="stats-row">
-        <div class="card stat-card">
-            <div class="label">Leading Candidate</div>
-            <div class="value" style="color: var(--primary);">{{ winner }}</div>
+    <div class="card">
+        <h3>Candidate Management</h3>
+        <div id="candidate-list">
+            {% for c in settings.candidates %}
+            <div class="row candidate-row">
+                <input type="text" class="c-name" value="{{ c.name }}">
+                <input type="text" class="c-symbol" style="flex: 0.3;" value="{{ c.symbol }}">
+            </div>
+            {% endfor %}
         </div>
-        <div class="card stat-card voter">
-            <div class="label">Voter Turnout</div>
-            <div class="value" style="color: var(--purple);">{{ turnout }}%</div>
-        </div>
+        <button class="btn btn-green" onclick="saveCandidates()">Save & Sync Candidates</button>
     </div>
 
-    <div class="card stat-card integrity">
-        <div class="label">System Integrity</div>
-        <div class="value" style="color: var(--green);">Merkle Root Active ✓</div>
-    </div>
-
-    <div class="section-card">
-        <div class="section-title">Election Candidate Management</div>
-        {% for c in candidates %}
-        <div class="vote-row">
-            <div class="input-display">{{ c.name }} — ({{ vote_counts[c.name] }} Votes)</div>
-            <div class="symbol-display">{{ c.symbol }}</div>
-        </div>
-        {% endfor %}
-        <button class="btn btn-purple">+ Add New Candidate Row</button>
-        <button class="btn btn-green">Synchronize & Save Election List</button>
-    </div>
-
-    <div class="section-card" style="border-left: 8px solid var(--orange);">
-        <div class="section-title">⚠️ Security Alerts (Range & Double Voting)</div>
-        <table class="alert-table">
-            <thead>
-                <tr>
-                    <th>ATTEMPTED ID</th>
-                    <th>TIME (IST)</th>
-                    <th>VIOLATION</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if logs %}
-                    {% for log in logs %}
-                    <tr>
-                        <td style="font-weight: 700; color: var(--danger);">{{ log.id }}</td>
-                        <td style="color: #64748b;">{{ log.time }}</td>
-                        <td><span class="badge-red">{{ log.reason }}</span></td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr><td colspan="3" style="padding: 20px; color: #94a3b8;">No security threats detected. System secure.</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section-card">
-        <div class="section-title">Election Schedule (IST)</div>
-        <div class="time-banner">Server Start: {{ current_time }}</div>
-        <button class="btn btn-blue">Update Election Window</button>
-        <button class="btn btn-orange" onclick="terminateElection()">🛑 Stop Clock & End Election Now</button>
+    <div class="card">
+        <h3>Election Schedule</h3>
+        <label>Start Time:</label>
+        <input type="datetime-local" id="start-time" value="{{ settings.start_time }}" class="row">
+        <label>End Time:</label>
+        <input type="datetime-local" id="end-time" value="{{ settings.end_time }}" class="row">
+        <button class="btn btn-blue" onclick="saveSchedule()">Update Timing</button>
     </div>
 </div>
 
 <script>
-    function terminateElection() {
-        if(confirm("Are you sure you want to stop the election? This will lock the blockchain.")) {
-            fetch('/stop_election', {method: 'POST'})
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload();
-            });
-        }
+    function saveCandidates() {
+        const rows = document.querySelectorAll('.candidate-row');
+        const candidates = Array.from(rows).map(row => ({
+            name: row.querySelector('.c-name').value,
+            symbol: row.querySelector('.c-symbol').value
+        }));
+
+        fetch('/update_candidates', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({candidates})
+        }).then(res => alert("Election List Updated!"));
+    }
+
+    function saveSchedule() {
+        const start = document.getElementById('start-time').value;
+        const end = document.getElementById('end-time').value;
+
+        fetch('/update_schedule', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({start, end})
+        }).then(res => alert("Schedule Saved!"));
     }
 </script>
 
