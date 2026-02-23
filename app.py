@@ -19,7 +19,7 @@ ELECTION_SETTINGS = {
         {"name": "Laxman", "symbol": "🐘"}
     ],
     "start_time": "2026-02-23T09:00",
-    "end_time": "2026-02-23T23:59",
+    "end_time": "2026-02-24T23:59",
     "is_active": True,
     "authorized_prefix": "24V11A",
     "range_start": 501,
@@ -52,6 +52,7 @@ class Blockchain:
         return self.chain[-1]
 
     def hash(self, block):
+        # Using a fixed sort_keys to ensure consistent hashing
         encoded_block = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(encoded_block).hexdigest()
 
@@ -101,7 +102,7 @@ def cast_vote():
     except:
         return "<h1>Invalid ID Format</h1><a href='/'>Back</a>"
 
-    # Double Vote Check (Redirects to your already_cast.html template)
+    # Double Vote Check
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         blockchain.security_logs.append({
@@ -184,4 +185,5 @@ def reset_election():
     return jsonify({"status": "success"})
 
 if __name__ == '__main__':
+    # Render uses port 10000 by default for Python apps
     app.run(host='0.0.0.0', port=10000)
