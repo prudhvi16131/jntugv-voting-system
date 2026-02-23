@@ -12,7 +12,7 @@ app.secret_key = "JNTUGV_BLOCKCHAIN_2026_MASTER_PRO"
 IST = pytz.timezone('Asia/Kolkata')
 ADMIN_SECRET = "JNTUGV_SECRET" 
 
-# Dynamic Election Data (Restored for Candidate Management)
+# Dynamic Election Data
 ELECTION_SETTINGS = {
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"}, 
@@ -20,7 +20,7 @@ ELECTION_SETTINGS = {
     ],
     "start_time": "2026-02-23T09:00",
     "end_time": "2026-02-23T18:00",
-    "is_active": True,
+    "is_active": True, # Controls the Stop Clock feature
     "authorized_prefix": "24V11A",
     "range_start": 501,
     "range_end": 580,
@@ -75,10 +75,14 @@ def index():
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
+    # Check if Admin has manually stopped the election
+    if not ELECTION_SETTINGS["is_active"]:
+        return "<h1>Election Closed</h1><p>The election has been stopped by the administrator.</p><a href='/'>Back</a>"
+
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
     
-    # Advanced IP Capture for Map Location
+    # Capture User IP
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if user_ip and ',' in user_ip:
         user_ip = user_ip.split(',')[0]
@@ -125,7 +129,6 @@ def audit_ledger():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-# --- ADMIN DASHBOARD (RESTORED PIC 2 FEATURES) ---
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
@@ -142,19 +145,25 @@ def admin_results():
                            candidates=ELECTION_SETTINGS["candidates"],
                            current_time=datetime.now(IST).strftime("%Y-%m-%d %H:%M"))
 
-# --- NEW: SECURITY CENTER ROUTE ---
 @app.route(f'/admin/security-center/{ADMIN_SECRET}')
 def security_center():
     return render_template('security_center.html', 
                            logs=blockchain.security_logs, 
                            settings=ELECTION_SETTINGS)
 
-# --- API ENDPOINTS ---
+# --- NEW: STOP ELECTION ENDPOINT ---
+@app.route('/stop_election', methods=['POST'])
+def stop_election():
+    ELECTION_SETTINGS["is_active"] = False
+    return jsonify({"status": "success", "message": "Election Stopped"})
+
+# --- RESET ENDPOINT ---
 @app.route('/reset_election', methods=['POST'])
 def reset_election():
     global blockchain
     blockchain = Blockchain()
-    return jsonify({"status": "success", "message": "Blockchain Fully Reset"})
+    ELECTION_SETTINGS["is_active"] = True
+    return jsonify({"status": "success"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
