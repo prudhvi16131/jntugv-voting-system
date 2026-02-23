@@ -113,7 +113,7 @@ def cast_vote():
                            receipt=receipt_id, 
                            timestamp=timestamp)
 
-# --- UPDATED AUDIT ROUTE WITH SEARCH LOGIC ---
+# --- AUDIT ROUTE WITH SEARCH LOGIC ---
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_ledger():
     searched_id = None
@@ -170,5 +170,5 @@ def reset_election():
 
 # --- DEPLOYMENT CONFIG FOR RENDER ---
 if __name__ == '__main__':
-    # host='0.0.0.0' and port 10000 are essential for Render stability
+    # host='0.0.0.0' is required for Render to map the internal port correctly
     app.run(host='0.0.0.0', port=10000)
