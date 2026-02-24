@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Blockchain E-Voting</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>BCET | Blockchain E-Voting</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -31,18 +28,18 @@
             text-align: center;
         }
 
-        /* Matches Pic 2 Shield exactly */
-        .shield-svg {
-            width: 75px;
+        /* COLLEGE LOGO STYLING */
+        .college-logo {
+            width: 110px;
             height: auto;
             margin-bottom: 15px;
-            fill: #a5c3d4; 
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
 
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
+        /* TIMER STYLING (MATCHES PIC 2) */
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -60,18 +57,16 @@
             margin-bottom: 5px;
         }
 
-        /* FORCED ITALIC PLAYFAIR (Matches Pic 2) */
         .timer-value {
             font-family: 'Playfair Display', serif !important;
             font-size: 2.4rem;
             color: #ef4444;
             font-style: italic !important;
             font-weight: 700;
-            line-height: 1.2;
         }
 
+        /* FORM STYLING */
         .input-group { text-align: left; margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 8px; }
         
         .styled-input {
             width: 100%; padding: 15px; border: 1px solid #e2e8f0; border-radius: 15px;
@@ -81,8 +76,10 @@
         .btn-confirm {
             width: 100%; background: var(--accent-blue); color: white; padding: 18px;
             border: none; border-radius: 15px; font-size: 1rem; font-weight: 600;
-            cursor: pointer; margin-top: 10px; transition: 0.3s;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
         }
+
+        .btn-confirm:hover { transform: translateY(-2px); }
 
         .verify-link { 
             display: inline-block; 
@@ -97,11 +94,9 @@
 <body>
 
 <div class="main-card">
-    <svg class="shield-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-    </svg>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="BCET Logo" class="college-logo">
     
-    <h2>JNTU-GV E-Voting</h2>
+    <h2>BCET E-Voting</h2>
     <div class="sub-heading">Blockchain-Secured Student Election</div>
 
     <div class="timer-box">
@@ -111,18 +106,21 @@
 
     <form action="/cast_vote" method="POST">
         <div class="input-group">
-            <input type="text" name="student_id" class="styled-input" placeholder="e.g. 24V11A0501" required>
+            <input type="text" name="student_id" class="styled-input" placeholder="Enter Hall Ticket Number" required>
         </div>
+
         <div class="input-group">
             <select name="candidate" class="styled-input" required>
-                <option value="" disabled selected>Select candidate from list</option>
+                <option value="" disabled selected>Select Your Candidate</option>
                 {% for c in candidate_list %}
                 <option value="{{ c.name }}">{{ c.symbol }} {{ c.name }}</option>
                 {% endfor %}
             </select>
         </div>
+
         <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
     </form>
+
     <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
 </div>
 
@@ -131,12 +129,22 @@
     function updateCountdown() {
         const now = new Date().getTime();
         const difference = targetDate - now;
-        if (difference <= 0) { document.getElementById("countdown").innerHTML = "CLOSED"; return; }
-        const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((difference % (1000 * 60)) / 1000);
-        document.getElementById("countdown").innerHTML = (h < 10 ? "0" + h : h) + "h " + (m < 10 ? "0" + m : m) + "m " + (s < 10 ? "0" + s : s) + "s";
+        
+        if (difference <= 0) {
+            document.getElementById("countdown").innerHTML = "CLOSED";
+            return;
+        }
+
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        document.getElementById("countdown").innerHTML = 
+            (hours < 10 ? "0" + hours : hours) + "h " + 
+            (minutes < 10 ? "0" + minutes : minutes) + "m " + 
+            (seconds < 10 ? "0" + seconds : seconds) + "s";
     }
+
     setInterval(updateCountdown, 1000);
     updateCountdown();
 </script>
