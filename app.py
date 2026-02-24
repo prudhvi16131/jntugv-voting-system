@@ -4,14 +4,15 @@ import time
 from datetime import datetime
 import pytz
 from io import BytesIO
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, url_for
 
 # PDF Libraries
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 
-app = Flask(__name__)
+# INITIALIZE FLASK WITH STATIC FOLDER SUPPORT
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 app.secret_key = "BCET_BLOCKCHAIN_2026_SECURE"
 
 # --- CONFIGURATION ---
@@ -32,11 +33,13 @@ ELECTION_SETTINGS = {
     "admin_secret": ADMIN_SECRET
 }
 
+# --- BLOCKCHAIN ENGINE ---
 class Blockchain:
     def __init__(self):
         self.reset()
 
     def reset(self):
+        """Resets the entire chain for a new election"""
         self.chain = []
         self.pending_votes = []
         self.nullifiers = set()
@@ -93,24 +96,63 @@ def cast_vote():
 
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
-        blockchain.security_logs.append({"id": student_id, "time": datetime.now(IST).strftime("%H:%M:%S"), "reason": "Double Vote Attempt", "ip": user_ip})
+        blockchain.security_logs.append({
+            "id": student_id, 
+            "time": datetime.now(IST).strftime("%H:%M:%S"), 
+            "reason": "Double Vote Attempt", 
+            "ip": user_ip
+        })
         return render_template('already_cast.html')
 
     blockchain.nullifiers.add(nullifier)
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
     blockchain.pending_votes.append({'candidate': candidate, 'receipt': receipt_id})
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
-    return render_template('success.html', candidate=candidate, receipt=receipt_id, timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
+    
+    return render_template('success.html', 
+                           candidate=candidate, 
+                           receipt=receipt_id, 
+                           timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
+
+@app.route('/audit', methods=['GET', 'POST'])
+def audit_portal():
+    """Handles the Verify Vote Receipt logic"""
+    searched_id, result = None, None
+    if request.method == 'POST':
+        searched_id = request.form.get('receipt', '').upper().strip()
+        for block in blockchain.chain:
+            for vote in block['votes']:
+                if vote.get('receipt') == searched_id:
+                    result = {
+                        "candidate": vote['candidate'], 
+                        "timestamp": block['timestamp'], 
+                        "block_index": block['index']
+                    }
+                    break
+            if result: break
+    return render_template('audit.html', searched_id=searched_id, result=result)
 
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
-    return render_template('results.html', settings=ELECTION_SETTINGS, vote_counts=vote_counts, logs=blockchain.security_logs)
+    return render_template('results.html', 
+                           settings=ELECTION_SETTINGS, 
+                           vote_counts=vote_counts, 
+                           logs=blockchain.security_logs)
 
-# --- ADMIN API ---
+# --- ADMIN API ACTIONS ---
+
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
     ELECTION_SETTINGS["candidates"] = request.json['candidates']
+    return jsonify({"status": "success"})
+
+@app.route('/update_timing', methods=['POST'])
+def update_timing():
+    data = request.json
+    ELECTION_SETTINGS["start_time"] = data['start']
+    ELECTION_SETTINGS["end_time"] = data['end']
+    ELECTION_SETTINGS["is_active"] = True
     return jsonify({"status": "success"})
 
 @app.route('/stop_election', methods=['POST'])
@@ -123,7 +165,8 @@ def reset_election():
     blockchain.reset()
     return jsonify({"status": "success"})
 
-# --- BCET BRANDED PDF ---
+# --- BCET BRANDED PDF REPORT ---
+
 @app.route(f'/download-results/{ADMIN_SECRET}')
 def download_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
@@ -133,12 +176,8 @@ def download_results():
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
-    # Theme Colors
-    slate = colors.HexColor("#1e293b")
-    blue = colors.HexColor("#2563eb")
-
-    # Header
-    p.setFillColor(slate)
+    # Header Design
+    p.setFillColor(colors.HexColor("#1e293b"))
     p.rect(0, height - 100, width, 100, fill=1, stroke=0)
     p.setFillColor(colors.white)
     p.setFont("Helvetica-Bold", 22)
@@ -146,7 +185,7 @@ def download_results():
     p.setFont("Helvetica", 10)
     p.drawString(50, height - 80, f"Behara College of Engineering & Technology | {datetime.now(IST).strftime('%d %b %Y')}")
 
-    # Content
+    # Vote Distribution
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 14)
     p.drawString(50, height - 150, "FINAL VOTE TALLY")
@@ -164,7 +203,7 @@ def download_results():
     buffer.close()
     
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=BCET_Results.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=BCET_Election_Results.pdf"
     response.headers['Content-Type'] = 'application/pdf'
     return response
 
