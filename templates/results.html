@@ -6,36 +6,14 @@
     <title>BCET | Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            margin: 0; 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
-            display: flex; 
-            justify-content: center; 
-            padding: 20px; 
-        }
-        .dashboard-container { 
-            width: 100%; 
-            max-width: 500px; 
-        }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; display: flex; justify-content: center; padding: 20px; }
+        .dashboard-container { width: 100%; max-width: 500px; }
         
-        /* HEADER STYLING (PIC 1 STYLE) */
-        .header-card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-            border: 1px solid #e2e8f0; 
-        }
-        .college-logo-admin {
-            width: 70px;
-            height: auto;
-            margin-bottom: 10px;
-        }
+        .header-card { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .college-logo-admin { width: 70px; height: auto; margin-bottom: 10px; }
         .header-card h1 { margin: 0; font-size: 1.6rem; color: #1e293b; }
 
+        /* SECURITY BUTTON STYLING */
         .status-alert {
             background: #fffbeb;
             border: 1px solid #fef3c7;
@@ -45,89 +23,36 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.2s;
         }
+        .status-alert:hover { background: #fef3c7; transform: scale(1.02); }
 
-        /* CARD STYLING */
-        .section-card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-            border: 1px solid #e2e8f0; 
-        }
+        .section-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .section-card h3 { margin-top: 0; margin-bottom: 20px; color: #1e293b; }
 
-        /* CANDIDATE ROW STYLING */
-        .vote-row { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            margin-bottom: 12px; 
-        }
-        .input-box { 
-            padding: 12px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            font-size: 0.9rem; 
-            color: #1e293b;
-        }
+        .vote-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .input-box { padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; color: #1e293b; }
         .name-input { flex: 2; font-weight: 600; }
         .symbol-input { flex: 0.5; text-align: center; font-size: 1.2rem; }
-        .vote-count-display { 
-            font-weight: 700; 
-            color: #2563eb; 
-            min-width: 75px; 
-            text-align: right; 
-        }
+        .vote-count-display { font-weight: 700; color: #2563eb; min-width: 75px; text-align: right; }
 
-        /* OFFICIAL DOCUMENTATION BOX (PIC 2 STYLE) */
-        .doc-column { 
-            background: #f8fafc; 
-            border: 2px dashed #cbd5e1; 
-            padding: 20px; 
-            border-radius: 20px; 
-            text-align: center; 
-            margin-top: 20px; 
-        }
-        .btn-download { 
-            display: block; 
-            background: #1e293b; 
-            color: white; 
-            padding: 14px; 
-            border-radius: 12px; 
-            text-decoration: none; 
-            font-weight: 600; 
-            margin-top: 15px; 
-        }
-
-        /* BUTTONS */
-        .btn-action { 
-            width: 100%; 
-            padding: 14px; 
-            border-radius: 10px; 
-            border: none; 
-            font-weight: 600; 
-            margin-bottom: 10px; 
-            cursor: pointer; 
-            transition: 0.2s; 
-        }
+        .btn-action { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 600; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .btn-sync { background: #10b981; color: white; }
         .btn-timing { background: #2563eb; color: white; }
         .btn-stop { background: #ef4444; color: white; }
         .btn-add { background: #64748b; color: white; }
         
-        input[type="datetime-local"] { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            margin-top: 5px; 
-            margin-bottom: 15px; 
-            box-sizing: border-box;
-            font-family: inherit;
-        }
+        input[type="datetime-local"] { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
         label { font-size: 0.75rem; font-weight: 700; color: #64748b; }
+
+        /* MODAL (LOGS POPUP) STYLING */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; }
+        .log-item { border-bottom: 1px solid #e2e8f0; padding: 10px 0; font-size: 0.85rem; }
+
+        .doc-column { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 20px; border-radius: 20px; text-align: center; margin-top: 20px; }
+        .btn-download { display: block; background: #1e293b; color: white; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -138,8 +63,8 @@
         <h1>BCET Admin Dashboard</h1>
     </div>
 
-    <div class="status-alert">
-        <span style="color: #92400e; font-weight: 600;">⚠️ Security Integrity Logs</span>
+    <div class="status-alert" onclick="openLogs()">
+        <span style="color: #92400e; font-weight: 600;">⚠️ Security Violations Detected</span>
         <span style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 50px;">{{ logs|length }}</span>
     </div>
 
@@ -154,13 +79,11 @@
             </div>
             {% endfor %}
         </div>
-        
         <button class="btn-action btn-add" onclick="addRow()">+ Add New Candidate Row</button>
         <button class="btn-action btn-sync" onclick="syncCandidates()">Synchronize & Save List</button>
 
         <div class="doc-column">
-            <h4 style="margin: 0; color: #1e293b;">Official Documentation</h4>
-            <p style="font-size: 0.75rem; color: #64748b; margin: 8px 0;">Download blockchain-verified PDF report.</p>
+            <h4>Official Documentation</h4>
             <a href="/download-results/{{ settings.admin_secret }}" class="btn-download">📥 Download BCET PDF Report</a>
         </div>
     </div>
@@ -169,10 +92,8 @@
         <h3>Election Schedule (IST)</h3>
         <label>START TIME</label>
         <input type="datetime-local" id="start-time" value="{{ settings.start_time }}">
-        
         <label>END TIME</label>
         <input type="datetime-local" id="end-time" value="{{ settings.end_time }}">
-
         <button class="btn-action btn-timing" onclick="updateTiming()">Update Timing Window</button>
         <button class="btn-action btn-stop" onclick="stopElection()">Stop Clock & End Election Now</button>
     </div>
@@ -182,7 +103,28 @@
     </div>
 </div>
 
+<div id="logModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0;">Security Incident Logs</h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+            {% for log in logs %}
+            <div class="log-item">
+                <strong>{{ log.id }}</strong> - <span style="color: #ef4444;">{{ log.reason }}</span><br>
+                <small style="color: #64748b;">{{ log.time }} | IP: {{ log.ip }}</small>
+            </div>
+            {% endfor %}
+            {% if not logs %}
+            <p style="text-align:center; color:#94a3b8;">No violations detected yet.</p>
+            {% endif %}
+        </div>
+        <button class="btn-action btn-sync" style="margin-top:20px;" onclick="closeLogs()">Close Logs</button>
+    </div>
+</div>
+
 <script>
+    function openLogs() { document.getElementById('logModal').style.display = 'block'; }
+    function closeLogs() { document.getElementById('logModal').style.display = 'none'; }
+
     function addRow() {
         const div = document.createElement('div');
         div.className = 'vote-row';
@@ -221,7 +163,7 @@
     }
 
     function resetProject() {
-        if(confirm("FACTORY RESET: Delete all votes and reset BCET blockchain?")) {
+        if(confirm("FACTORY RESET: Delete all votes?")) {
             fetch('/reset_election', { method: 'POST' }).then(() => location.reload());
         }
     }
