@@ -28,19 +28,19 @@
             text-align: center;
         }
 
-        /* Forced Shield Fix - Professional Blue/Grey Style (Pic 2) */
+        /* Professional Shield Styling (Matches Pic 2) */
         .shield-svg {
             width: 75px;
             height: auto;
             margin-bottom: 15px;
-            fill: #94a3b8; /* Professional grey-blue color */
+            fill: #a5c3d4; /* The light blue/grey professional color from Pic 2 */
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
 
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
-        /* Timer Styling (Pic 1 Style) */
+        /* Timer Styling with Italic Playfair Font */
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -58,11 +58,12 @@
             margin-bottom: 5px;
         }
 
+        /* FORCED ITALIC FONT (Pic 2 Style) */
         .timer-value {
             font-family: 'Playfair Display', serif !important;
             font-size: 2.3rem;
             color: #ef4444;
-            font-style: italic !important; /* Italic requirement from Pic 1 */
+            font-style: italic !important;
             font-weight: 700;
             margin-top: 5px;
         }
@@ -82,10 +83,6 @@
             transition: 0.3s;
         }
 
-        .btn-confirm:hover { transform: translateY(-2px); background: #1d4ed8; }
-        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
-
-        /* Verify Link Styling (Pic 1 Underline Style) */
         .verify-link { 
             display: inline-block; 
             margin-top: 25px; 
@@ -115,7 +112,7 @@
     <form action="/cast_vote" method="POST">
         <div class="input-group">
             <label>Hall Ticket Number</label>
-            <input type="text" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
+            <input type="text" name="student_id" class="styled-input" placeholder="e.g. 24V11A0501" required>
         </div>
 
         <div class="input-group">
@@ -128,7 +125,7 @@
             </select>
         </div>
 
-        <button type="submit" class="btn-confirm" id="submitBtn">Confirm Secure Vote</button>
+        <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
     </form>
 
     <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
@@ -142,7 +139,6 @@
         
         if (difference <= 0) {
             document.getElementById("countdown").innerHTML = "CLOSED";
-            document.getElementById("submitBtn").disabled = true;
             return;
         }
 
