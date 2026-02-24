@@ -6,7 +6,7 @@ import pytz
 from io import BytesIO
 from flask import Flask, render_template, request, jsonify, make_response
 
-# PDF Library
+# PDF Libraries
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -87,6 +87,7 @@ def cast_vote():
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
     
+    # IP Cleaning
     raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else raw_ip
 
@@ -118,9 +119,10 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-# --- NEW: PDF DOWNLOAD ROUTE ---
+# --- PDF REPORT DOWNLOAD ROUTE ---
 @app.route(f'/download-results/{ADMIN_SECRET}')
 def download_results():
+    symbol_map = {c['name']: c['symbol'] for c in ELECTION_SETTINGS["candidates"]}
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     total_votes = sum(vote_counts.values())
     winner = max(vote_counts, key=vote_counts.get) if total_votes > 0 else "N/A"
@@ -129,28 +131,54 @@ def download_results():
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    p.setFillColor(colors.HexColor("#1e293b"))
-    p.setFont("Helvetica-Bold", 22)
-    p.drawCentredString(width/2, height - 60, "JNTU-GV E-VOTING REPORT")
-    
-    p.setFont("Helvetica", 10)
-    p.setFillColor(colors.grey)
-    p.drawCentredString(width/2, height - 80, f"Generated: {datetime.now(IST).strftime('%d/%m/%Y %H:%M:%S')} IST")
-    
-    p.setStrokeColor(colors.HexColor("#2563eb"))
-    p.line(50, height - 100, width - 50, height - 100)
+    # Theme Colors
+    slate_dark = colors.HexColor("#1e293b")
+    blue_accent = colors.HexColor("#2563eb")
+    slate_light = colors.HexColor("#64748b")
 
+    # Header
+    p.setFillColor(slate_dark)
+    p.rect(0, height - 100, width, 100, fill=1, stroke=0)
+    p.setFillColor(colors.white)
+    p.setFont("Helvetica-Bold", 24)
+    p.drawString(50, height - 60, "OFFICIAL ELECTION REPORT")
+    p.setFont("Helvetica", 10)
+    p.drawString(50, height - 80, f"JNTU-GV Blockchain Ledger | Generated: {datetime.now(IST).strftime('%d %b %Y, %H:%M')}")
+
+    # Summary
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, height - 140, "Election Summary")
-    p.setFont("Helvetica", 12)
-    p.drawString(70, height - 165, f"Total Votes Polled: {total_votes}")
-    p.drawString(70, height - 185, f"Official Winner: {winner}")
+    p.drawString(50, height - 150, "ELECTION SUMMARY")
+    p.setStrokeColor(blue_accent)
+    p.line(50, height - 155, 200, height - 155)
 
-    y = height - 260
+    # Winner Box
+    p.setFillColor(colors.HexColor("#f1f5f9"))
+    p.roundRect(50, height - 230, width - 100, 60, 10, fill=1, stroke=0)
+    p.setFillColor(slate_dark)
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(70, height - 195, "DECLARED WINNER:")
+    p.setFillColor(blue_accent)
+    p.setFont("Helvetica-Bold", 20)
+    winner_symbol = symbol_map.get(winner, "")
+    p.drawString(70, height - 218, f"{winner_symbol} {winner.upper()}")
+
+    # Table
+    y = height - 300
+    p.setFillColor(slate_dark)
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "SYMBOL & CANDIDATE NAME")
+    p.drawRightString(width - 50, y, "VOTE COUNT")
+    p.line(50, y - 5, width - 50, y - 5)
+    
+    y -= 35
+    p.setFont("Helvetica", 12)
+    p.setFillColor(colors.black)
     for name, count in vote_counts.items():
-        p.drawString(60, y, f"{name}: {count} Votes")
-        y -= 25
+        symbol = symbol_map.get(name, "")
+        p.drawString(50, y, f"{symbol}  {name}")
+        p.drawRightString(width - 50, y, str(count))
+        y -= 35
 
     p.showPage()
     p.save()
@@ -158,7 +186,7 @@ def download_results():
     buffer.close()
     
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = f"attachment; filename=Results.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=Election_Results_Final.pdf"
     response.headers['Content-Type'] = 'application/pdf'
     return response
 
