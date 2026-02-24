@@ -6,36 +6,28 @@
     <title>JNTU-GV | Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* DESIGN FROM PIC 1 */
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            display: flex; 
+            justify-content: center; 
+            padding: 20px; 
         }
-
-        .dashboard-container {
-            width: 100%;
-            max-width: 500px;
+        .dashboard-container { 
+            width: 100%; 
+            max-width: 500px; 
         }
-
-        .header-card {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+        .header-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+            border: 1px solid #e2e8f0; 
         }
-
-        .header-card h1 {
-            margin: 0;
-            font-size: 1.6rem;
-            color: #1e293b;
-        }
+        .header-card h1 { margin: 0; font-size: 1.6rem; color: #1e293b; }
 
         .status-alert {
             background: #fffbeb;
@@ -48,86 +40,85 @@
             margin-bottom: 20px;
         }
 
-        .section-card {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+        .section-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+            border: 1px solid #e2e8f0; 
         }
+        .section-card h3 { margin-top: 0; margin-bottom: 20px; color: #1e293b; }
 
-        .section-card h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #1e293b;
+        .vote-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 12px; 
         }
-
-        /* VOTE ITEM DESIGN FROM PIC 1 */
-        .vote-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .candidate-box {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            color: #64748b;
-        }
-
-        .vote-count-display {
-            padding: 12px;
-            font-weight: 700;
-            color: #2563eb;
-            min-width: 60px;
-            text-align: right;
-        }
-
-        /* DOCUMENTATION COLUMN DESIGN FROM PIC 2 */
-        .doc-column {
-            background: #ffffff;
-            border: 2px dashed #e2e8f0;
-            padding: 20px;
-            border-radius: 20px;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .btn-download {
-            display: block;
-            background: #1e293b;
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
+        .candidate-input { 
+            flex: 1; 
+            padding: 12px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 10px; 
+            color: #1e293b; 
+            background: #fff; 
             font-size: 0.9rem;
-            margin-top: 15px;
+        }
+        .vote-count-display { 
+            padding: 12px; 
+            font-weight: 700; 
+            color: #2563eb; 
+            min-width: 80px; 
+            text-align: right; 
+        }
+
+        /* Documentation box from Pic 2 */
+        .doc-column { 
+            background: #ffffff; 
+            border: 2px dashed #cbd5e1; 
+            padding: 20px; 
+            border-radius: 20px; 
+            text-align: center; 
+            margin-top: 20px; 
+        }
+        .btn-download { 
+            display: block; 
+            background: #1e293b; 
+            color: white; 
+            padding: 14px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            font-weight: 600; 
+            margin-top: 15px; 
             transition: 0.2s;
         }
+        .btn-download:hover { background: #334155; }
 
-        .btn-download:hover {
-            background: #334155;
+        .btn-action { 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 10px; 
+            border: none; 
+            font-weight: 600; 
+            margin-bottom: 10px; 
+            cursor: pointer; 
+            transition: 0.2s; 
         }
-
-        /* BUTTONS FROM PIC 1 */
-        .btn-action {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 600;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
         .btn-sync { background: #10b981; color: white; }
         .btn-timing { background: #2563eb; color: white; }
         .btn-stop { background: #ef4444; color: white; }
+        
+        input[type="datetime-local"] { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 10px; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+            font-family: inherit;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -138,53 +129,92 @@
     </div>
 
     <div class="status-alert">
-        <span style="color: #92400e; font-weight: 600;">⚠️ Security Violations Detected</span>
+        <span style="color: #92400e; font-weight: 600;">⚠️ Security Integrity Logs</span>
         <span style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 50px;">{{ logs|length }}</span>
     </div>
 
     <div class="section-card">
         <h3>Candidate Management & Live Tally</h3>
-        {% for name, count in vote_counts.items() %}
-        <div class="vote-row">
-            <div class="candidate-box">{{ name }}</div>
-            <div class="vote-count-display">{{ count }} Votes</div>
+        <div id="candidate-list">
+            {% for name, count in vote_counts.items() %}
+            <div class="vote-row">
+                <input type="text" class="candidate-input name-input" value="{{ name }}">
+                <div class="vote-count-display">{{ count }} Votes</div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         
-        <button class="btn-action" style="background: #64748b; color: white;">+ Add New Candidate Row</button>
-        <button class="btn-action btn-sync">Synchronize & Save Election List</button>
+        <button class="btn-action" style="background: #64748b; color: white;" onclick="addRow()">+ Add New Candidate Row</button>
+        <button class="btn-action btn-sync" onclick="syncCandidates()">Synchronize & Save Election List</button>
 
         <div class="doc-column">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="margin-bottom: 10px;">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="12" y1="18" x2="12" y2="12"></line>
-                <polyline points="9 15 12 18 15 15"></polyline>
-            </svg>
             <h4 style="margin: 0; color: #1e293b;">Official Documentation</h4>
             <p style="font-size: 0.75rem; color: #64748b; margin: 8px 0;">Generate a blockchain-verified PDF report.</p>
-            <a href="/download-results/{{ settings.admin_secret }}" class="btn-download">
-                📥 Download Results PDF
-            </a>
+            <a href="/download-results/{{ settings.admin_secret }}" class="btn-download">📥 Download Results PDF</a>
         </div>
     </div>
 
     <div class="section-card">
         <h3>Election Schedule (IST)</h3>
-        <label style="font-size: 0.8rem; font-weight: 600;">START TIME</label>
-        <div class="candidate-box" style="margin-top:5px; margin-bottom:15px;">{{ settings.start_time }}</div>
+        <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">START TIME</label>
+        <input type="datetime-local" id="start-time" value="{{ settings.start_time }}">
         
-        <label style="font-size: 0.8rem; font-weight: 600;">END TIME</label>
-        <div class="candidate-box" style="margin-top:5px; margin-bottom:15px;">{{ settings.end_time }}</div>
+        <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">END TIME</label>
+        <input type="datetime-local" id="end-time" value="{{ settings.end_time }}">
 
-        <button class="btn-action btn-timing">Update Timing Window</button>
-        <button class="btn-action btn-stop">Stop Clock & End Election Now</button>
+        <button class="btn-action btn-timing" onclick="updateTiming()">Update Timing Window</button>
+        <button class="btn-action btn-stop" onclick="stopElection()">Stop Clock & End Election Now</button>
     </div>
 
     <div class="section-card" style="border: 2px solid #ef4444;">
-        <button class="btn-action btn-stop" style="margin-bottom:0;">⚠️ Factory Reset Project</button>
+        <button class="btn-action btn-stop" onclick="resetProject()">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
+<script>
+    function addRow() {
+        const div = document.createElement('div');
+        div.className = 'vote-row';
+        div.innerHTML = '<input type="text" class="candidate-input name-input" placeholder="Candidate Name"><div class="vote-count-display">0 Votes</div>';
+        document.getElementById('candidate-list').appendChild(div);
+    }
+
+    function syncCandidates() {
+        const names = Array.from(document.querySelectorAll('.name-input')).map(input => ({
+            name: input.value, 
+            symbol: "👤"
+        }));
+        fetch('/sync_candidates', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({candidates: names})
+        }).then(() => alert("Candidates Synced Successfully!"));
+    }
+
+    function updateTiming() {
+        const start = document.getElementById('start-time').value;
+        const end = document.getElementById('end-time').value;
+        fetch('/update_timing', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({start: start, end: end})
+        }).then(() => alert("Election Timing Updated!"));
+    }
+
+    function stopElection() {
+        if(confirm("Are you sure you want to stop the election? Students will no longer be able to vote.")) {
+            fetch('/stop_election', { method: 'POST' }).then(() => alert("Election has been stopped."));
+        }
+    }
+
+    function resetProject() {
+        if(confirm("CRITICAL WARNING: This will permanently delete ALL recorded votes and reset the blockchain. This action cannot be undone. Proceed?")) {
+            fetch('/reset_election', { method: 'POST' }).then(() => {
+                alert("Project Reset Complete.");
+                location.reload();
+            });
+        }
+    }
+</script>
 </body>
 </html>
