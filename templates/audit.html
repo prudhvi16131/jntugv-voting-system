@@ -3,55 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JNTU-GV | Blockchain Ledger</title>
+    <title>BCET | Blockchain Ledger</title>
     <style>
-        :root { --jntu-blue: #0066ff; --success-bg: #f0fff4; --success-border: #10b981; }
+        /* Updated to BCET Blue */
+        :root { --bcet-blue: #2563eb; --success-bg: #f0fff4; --success-border: #10b981; }
         
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f8fafc; 
+            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
         }
 
         .audit-card { 
-            background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 480px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; 
+            background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 440px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; 
         }
 
         .search-icon { font-size: 50px; margin-bottom: 10px; display: block; }
         
-        h2 { color: #1e293b; margin-bottom: 5px; font-weight: 700; }
+        h2 { color: #1e293b; margin: 0 0 5px 0; font-weight: 700; }
         .instruction { color: #64748b; font-size: 0.85rem; margin-bottom: 25px; }
 
         input { 
             width: 100%; padding: 1.1rem; border: 1px solid #e2e8f0; border-radius: 12px; 
-            font-size: 1.2rem; box-sizing: border-box; text-align: center; 
-            letter-spacing: 2px; font-weight: 600; text-transform: uppercase; margin-bottom: 15px;
+            font-size: 1.1rem; box-sizing: border-box; text-align: center; 
+            letter-spacing: 1px; font-weight: 600; text-transform: uppercase; margin-bottom: 15px;
+            background: #f8fafc;
         }
 
         .btn-search { 
-            background: var(--jntu-blue); color: white; padding: 1rem; border-radius: 12px; 
-            border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 0.9rem;
-            transition: 0.2s; margin-bottom: 30px;
+            background: var(--bcet-blue); color: white; padding: 1rem; border-radius: 12px; 
+            border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 0.95rem;
+            transition: 0.2s; margin-bottom: 10px;
         }
+        .btn-search:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
 
-        /* The Green Sidebar Card Design */
         .result-container { 
             background: var(--success-bg); border-radius: 16px; text-align: left;
             border-left: 6px solid var(--success-border); padding: 1.5rem;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.4s ease; margin-top: 20px;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .status-header { display: flex; align-items: center; color: var(--success-border); font-weight: 800; margin-bottom: 15px; font-size: 0.95rem; }
-        
         .data-label { color: #64748b; font-size: 0.75rem; font-weight: 600; margin-top: 10px; }
         .data-value { color: #1e293b; font-size: 1rem; font-weight: 700; }
 
         .back-link { 
-            display: inline-block; margin-top: 30px; color: var(--jntu-blue); 
-            text-decoration: none; font-size: 0.85rem; font-weight: 700; 
+            display: inline-block; margin-top: 25px; color: var(--bcet-blue); 
+            text-decoration: underline; font-size: 0.85rem; font-weight: 600; 
         }
     </style>
 </head>
@@ -60,35 +61,37 @@
 <div class="audit-card">
     <span class="search-icon">🔍</span>
     <h2>Verify Vote Receipt</h2>
-    <p class="instruction">Enter your 10-character code to see your vote on the blockchain ledger.</p>
+    <p class="instruction">Enter your 12-character receipt code to verify your vote in the BCET Blockchain Ledger.</p>
 
     <form action="/audit" method="POST">
-        <input type="text" name="receipt" placeholder="A4AA1BE73A" value="{{ searched_id if searched_id else '' }}" required>
+        <input type="text" name="receipt" placeholder="A1B2C3D4E5F6" value="{{ searched_id if searched_id else '' }}" required maxlength="12">
         <button type="submit" class="btn-search">Search Blockchain Ledger</button>
     </form>
 
     {% if searched_id %}
         {% if result %}
         <div class="result-container">
-            <div class="status-header">✅ Vote Verified</div>
+            <div class="status-header">✅ Blockchain Verified</div>
             
             <div class="data-label">Timestamp (IST):</div>
             <div class="data-value">{{ result.timestamp }}</div>
 
             <div style="margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
-                <div class="data-label">Candidate Voted:</div>
+                <div class="data-label">Candidate Recorded:</div>
                 <div class="data-value" style="font-size: 1.3rem;">{{ result.candidate }}</div>
+                <div class="data-label" style="margin-top:5px;">Block Position:</div>
+                <div class="data-value">Block #{{ result.block_index }}</div>
             </div>
         </div>
         {% else %}
         <div class="result-container" style="background: #fff5f5; border-left-color: #ef4444;">
             <div class="status-header" style="color: #ef4444;">❌ Receipt Not Found</div>
-            <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0;">This code does not exist in the ledger. Please check for typos.</p>
+            <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0;">This ID does not exist in the BCET ledger. Ensure you copied the full 12 characters from your success screen.</p>
         </div>
         {% endif %}
     {% endif %}
 
-    <a href="/" class="back-link">← Return to Voting Page</a>
+    <a href="/" class="back-link">Return to Voting Page</a>
 </div>
 
 </body>
