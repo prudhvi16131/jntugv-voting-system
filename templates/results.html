@@ -6,119 +6,32 @@
     <title>JNTU-GV | Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            margin: 0; 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
-            display: flex; 
-            justify-content: center; 
-            padding: 20px; 
-        }
-        .dashboard-container { 
-            width: 100%; 
-            max-width: 500px; 
-        }
-        .header-card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-            border: 1px solid #e2e8f0; 
-        }
-        .header-card h1 { margin: 0; font-size: 1.6rem; color: #1e293b; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; display: flex; justify-content: center; padding: 20px; }
+        .dashboard-container { width: 100%; max-width: 500px; }
+        .header-card { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .section-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        
+        /* Candidate Row Styling */
+        .vote-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .input-box { padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; }
+        .name-input { flex: 2; color: #1e293b; font-weight: 600; }
+        .symbol-input { flex: 0.5; text-align: center; font-size: 1.2rem; }
+        .vote-count-display { font-weight: 700; color: #2563eb; min-width: 75px; text-align: right; font-size: 0.9rem; }
 
-        .status-alert {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            padding: 12px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-            border: 1px solid #e2e8f0; 
-        }
-        .section-card h3 { margin-top: 0; margin-bottom: 20px; color: #1e293b; }
-
-        .vote-row { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            margin-bottom: 12px; 
-        }
-        .candidate-input { 
-            flex: 1; 
-            padding: 12px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            color: #1e293b; 
-            background: #fff; 
-            font-size: 0.9rem;
-        }
-        .vote-count-display { 
-            padding: 12px; 
-            font-weight: 700; 
-            color: #2563eb; 
-            min-width: 80px; 
-            text-align: right; 
-        }
-
-        /* Documentation box from Pic 2 */
-        .doc-column { 
-            background: #ffffff; 
-            border: 2px dashed #cbd5e1; 
-            padding: 20px; 
-            border-radius: 20px; 
-            text-align: center; 
-            margin-top: 20px; 
-        }
-        .btn-download { 
-            display: block; 
-            background: #1e293b; 
-            color: white; 
-            padding: 14px; 
-            border-radius: 12px; 
-            text-decoration: none; 
-            font-weight: 600; 
-            margin-top: 15px; 
-            transition: 0.2s;
-        }
-        .btn-download:hover { background: #334155; }
-
-        .btn-action { 
-            width: 100%; 
-            padding: 14px; 
-            border-radius: 10px; 
-            border: none; 
-            font-weight: 600; 
-            margin-bottom: 10px; 
-            cursor: pointer; 
-            transition: 0.2s; 
-        }
+        /* Action Buttons */
+        .btn-action { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 600; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .btn-sync { background: #10b981; color: white; }
         .btn-timing { background: #2563eb; color: white; }
         .btn-stop { background: #ef4444; color: white; }
-        
-        input[type="datetime-local"] { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            margin-top: 5px; 
-            margin-bottom: 15px; 
-            font-family: inherit;
-            box-sizing: border-box;
-        }
+        .btn-add { background: #64748b; color: white; }
+
+        /* Inputs */
+        label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+        input[type="datetime-local"] { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
+
+        /* Official Documentation Box */
+        .doc-column { background: #f1f5f9; border: 2px dashed #cbd5e1; padding: 20px; border-radius: 20px; text-align: center; margin-top: 20px; }
+        .btn-download { display: block; background: #1e293b; color: white; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -128,89 +41,108 @@
         <h1>JNTU-GV Admin Dashboard</h1>
     </div>
 
-    <div class="status-alert">
-        <span style="color: #92400e; font-weight: 600;">⚠️ Security Integrity Logs</span>
-        <span style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 50px;">{{ logs|length }}</span>
-    </div>
-
     <div class="section-card">
         <h3>Candidate Management & Live Tally</h3>
         <div id="candidate-list">
             {% for name, count in vote_counts.items() %}
             <div class="vote-row">
-                <input type="text" class="candidate-input name-input" value="{{ name }}">
+                <input type="text" class="input-box name-input" value="{{ name }}">
+                <input type="text" class="input-box symbol-input" value="{% for c in settings.candidates %}{% if c.name == name %}{{ c.symbol }}{% endif %}{% endfor %}">
                 <div class="vote-count-display">{{ count }} Votes</div>
             </div>
             {% endfor %}
         </div>
         
-        <button class="btn-action" style="background: #64748b; color: white;" onclick="addRow()">+ Add New Candidate Row</button>
+        <button class="btn-action btn-add" onclick="addRow()">+ Add New Candidate Row</button>
         <button class="btn-action btn-sync" onclick="syncCandidates()">Synchronize & Save Election List</button>
 
         <div class="doc-column">
             <h4 style="margin: 0; color: #1e293b;">Official Documentation</h4>
-            <p style="font-size: 0.75rem; color: #64748b; margin: 8px 0;">Generate a blockchain-verified PDF report.</p>
+            <p style="font-size: 0.75rem; color: #64748b; margin: 8px 0;">Generate verified blockchain PDF report.</p>
             <a href="/download-results/{{ settings.admin_secret }}" class="btn-download">📥 Download Results PDF</a>
         </div>
     </div>
 
     <div class="section-card">
         <h3>Election Schedule (IST)</h3>
-        <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">START TIME</label>
+        <label>Start Polling</label>
         <input type="datetime-local" id="start-time" value="{{ settings.start_time }}">
         
-        <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">END TIME</label>
+        <label>End Polling</label>
         <input type="datetime-local" id="end-time" value="{{ settings.end_time }}">
 
         <button class="btn-action btn-timing" onclick="updateTiming()">Update Timing Window</button>
         <button class="btn-action btn-stop" onclick="stopElection()">Stop Clock & End Election Now</button>
     </div>
 
-    <div class="section-card" style="border: 2px solid #ef4444;">
-        <button class="btn-action btn-stop" onclick="resetProject()">⚠️ Factory Reset Project</button>
+    <div class="section-card" style="border: 2px solid #ef4444; background: #fff1f2;">
+        <button class="btn-action btn-stop" style="margin: 0;" onclick="resetProject()">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
 <script>
+    // 1. Add a new candidate row locally
     function addRow() {
         const div = document.createElement('div');
         div.className = 'vote-row';
-        div.innerHTML = '<input type="text" class="candidate-input name-input" placeholder="Candidate Name"><div class="vote-count-display">0 Votes</div>';
+        div.innerHTML = `
+            <input type="text" class="input-box name-input" placeholder="Name">
+            <input type="text" class="input-box symbol-input" placeholder="👤">
+            <div class="vote-count-display">0 Votes</div>
+        `;
         document.getElementById('candidate-list').appendChild(div);
     }
 
+    // 2. Sync UI data with Python Server
     function syncCandidates() {
-        const names = Array.from(document.querySelectorAll('.name-input')).map(input => ({
-            name: input.value, 
-            symbol: "👤"
+        const rows = document.querySelectorAll('.vote-row');
+        const candidates = Array.from(rows).map(row => ({
+            name: row.querySelector('.name-input').value,
+            symbol: row.querySelector('.symbol-input').value || "👤"
         }));
+        
         fetch('/sync_candidates', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({candidates: names})
-        }).then(() => alert("Candidates Synced Successfully!"));
+            body: JSON.stringify({candidates: candidates})
+        }).then(() => {
+            alert("Election list updated successfully!");
+            location.reload();
+        });
     }
 
+    // 3. Update Election Times
     function updateTiming() {
         const start = document.getElementById('start-time').value;
         const end = document.getElementById('end-time').value;
+        
         fetch('/update_timing', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({start: start, end: end})
-        }).then(() => alert("Election Timing Updated!"));
+        }).then(() => {
+            alert("Polling times updated!");
+            location.reload();
+        });
     }
 
+    // 4. Force End Election
     function stopElection() {
-        if(confirm("Are you sure you want to stop the election? Students will no longer be able to vote.")) {
-            fetch('/stop_election', { method: 'POST' }).then(() => alert("Election has been stopped."));
+        if(confirm("This will immediately disable voting for all students. Continue?")) {
+            fetch('/stop_election', { method: 'POST' })
+            .then(() => {
+                alert("Election ended.");
+                location.reload();
+            });
         }
     }
 
+    // 5. Complete Reset
     function resetProject() {
-        if(confirm("CRITICAL WARNING: This will permanently delete ALL recorded votes and reset the blockchain. This action cannot be undone. Proceed?")) {
-            fetch('/reset_election', { method: 'POST' }).then(() => {
-                alert("Project Reset Complete.");
+        if(confirm("CRITICAL: This deletes ALL votes and clears the blockchain. Are you absolutely sure?")) {
+            fetch('/reset_election', { method: 'POST' })
+            .then(() => {
+                alert("System Reset Complete.");
                 location.reload();
             });
         }

@@ -36,6 +36,10 @@ ELECTION_SETTINGS = {
 # --- BLOCKCHAIN ENGINE ---
 class Blockchain:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
+        """Logic to clear all votes and security logs for Factory Reset"""
         self.chain = []
         self.pending_votes = []
         self.nullifiers = set()
@@ -75,19 +79,23 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
+    # Force the timer to show 'CLOSED' if admin has stopped the election
+    display_settings = ELECTION_SETTINGS.copy()
+    if not ELECTION_SETTINGS["is_active"]:
+        display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
+        
     return render_template('index.html', 
                            candidate_list=ELECTION_SETTINGS["candidates"], 
-                           settings=ELECTION_SETTINGS)
+                           settings=display_settings)
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
     if not ELECTION_SETTINGS["is_active"]:
-        return "<h1>Election Closed</h1><a href='/'>Back</a>"
+        return "<h1>Election Closed</h1><p>The admin has ended the polling.</p><a href='/'>Back</a>"
 
     student_id = request.form.get('student_id', '').upper().strip()
     candidate = request.form.get('candidate')
     
-    # IP Cleaning
     raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else raw_ip
 
@@ -119,7 +127,41 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-# --- PDF REPORT DOWNLOAD ROUTE ---
+@app.route(f'/admin-results/{ADMIN_SECRET}')
+def admin_results():
+    vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
+    return render_template('results.html', settings=ELECTION_SETTINGS, vote_counts=vote_counts, logs=blockchain.security_logs)
+
+# --- ADMIN API ACTIONS ---
+
+@app.route('/sync_candidates', methods=['POST'])
+def sync_candidates():
+    data = request.json
+    ELECTION_SETTINGS["candidates"] = data['candidates']
+    return jsonify({"status": "success"})
+
+@app.route('/update_timing', methods=['POST'])
+def update_timing():
+    data = request.json
+    ELECTION_SETTINGS["start_time"] = data['start']
+    ELECTION_SETTINGS["end_time"] = data['end']
+    ELECTION_SETTINGS["is_active"] = True
+    return jsonify({"status": "success"})
+
+@app.route('/stop_election', methods=['POST'])
+def stop_election():
+    ELECTION_SETTINGS["is_active"] = False
+    # Immediately end the countdown timer for users
+    ELECTION_SETTINGS["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
+    return jsonify({"status": "success"})
+
+@app.route('/reset_election', methods=['POST'])
+def reset_election():
+    blockchain.reset()
+    ELECTION_SETTINGS["is_active"] = True
+    return jsonify({"status": "success"})
+
+# --- STYLED PDF EXPORT ---
 @app.route(f'/download-results/{ADMIN_SECRET}')
 def download_results():
     symbol_map = {c['name']: c['symbol'] for c in ELECTION_SETTINGS["candidates"]}
@@ -134,51 +176,32 @@ def download_results():
     # Theme Colors
     slate_dark = colors.HexColor("#1e293b")
     blue_accent = colors.HexColor("#2563eb")
-    slate_light = colors.HexColor("#64748b")
 
-    # Header
+    # Draw Header
     p.setFillColor(slate_dark)
     p.rect(0, height - 100, width, 100, fill=1, stroke=0)
     p.setFillColor(colors.white)
     p.setFont("Helvetica-Bold", 24)
     p.drawString(50, height - 60, "OFFICIAL ELECTION REPORT")
     p.setFont("Helvetica", 10)
-    p.drawString(50, height - 80, f"JNTU-GV Blockchain Ledger | Generated: {datetime.now(IST).strftime('%d %b %Y, %H:%M')}")
+    p.drawString(50, height - 80, f"JNTU-GV Blockchain Verified | {datetime.now(IST).strftime('%d %b %Y, %H:%M')}")
 
-    # Summary
+    # Results Tally
+    y = height - 160
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, height - 150, "ELECTION SUMMARY")
-    p.setStrokeColor(blue_accent)
-    p.line(50, height - 155, 200, height - 155)
+    p.drawString(50, y, f"WINNER: {winner.upper()}")
+    y -= 40
 
-    # Winner Box
-    p.setFillColor(colors.HexColor("#f1f5f9"))
-    p.roundRect(50, height - 230, width - 100, 60, 10, fill=1, stroke=0)
-    p.setFillColor(slate_dark)
     p.setFont("Helvetica-Bold", 12)
-    p.drawString(70, height - 195, "DECLARED WINNER:")
-    p.setFillColor(blue_accent)
-    p.setFont("Helvetica-Bold", 20)
-    winner_symbol = symbol_map.get(winner, "")
-    p.drawString(70, height - 218, f"{winner_symbol} {winner.upper()}")
+    p.drawString(50, y, "VOTE DISTRIBUTION:")
+    y -= 25
 
-    # Table
-    y = height - 300
-    p.setFillColor(slate_dark)
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "SYMBOL & CANDIDATE NAME")
-    p.drawRightString(width - 50, y, "VOTE COUNT")
-    p.line(50, y - 5, width - 50, y - 5)
-    
-    y -= 35
-    p.setFont("Helvetica", 12)
-    p.setFillColor(colors.black)
     for name, count in vote_counts.items():
-        symbol = symbol_map.get(name, "")
-        p.drawString(50, y, f"{symbol}  {name}")
-        p.drawRightString(width - 50, y, str(count))
-        y -= 35
+        symbol = symbol_map.get(name, "👤")
+        p.setFont("Helvetica", 12)
+        p.drawString(60, y, f"{symbol} {name}: {count} Votes")
+        y -= 25
 
     p.showPage()
     p.save()
@@ -186,14 +209,9 @@ def download_results():
     buffer.close()
     
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=Election_Results_Final.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=Election_Results.pdf"
     response.headers['Content-Type'] = 'application/pdf'
     return response
-
-@app.route(f'/admin-results/{ADMIN_SECRET}')
-def admin_results():
-    vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
-    return render_template('results.html', settings=ELECTION_SETTINGS, vote_counts=vote_counts, logs=blockchain.security_logs)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
