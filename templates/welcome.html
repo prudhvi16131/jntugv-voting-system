@@ -6,19 +6,19 @@
     <title>Welcome | BCET Voting</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #0f172a; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #020617; }
         
-        /* Background using your local file */
+        /* Background using local campus photo with professional grading */
         .bg-container {
             position: fixed; width: 100%; height: 100%;
-            /* Make sure your generated image is saved as welcome-bg.jpg in the static folder */
             background: url('{{ url_for("static", filename="welcome-bg.jpg") }}');
             background-size: cover; 
             background-position: center;
-            z-index: -1;
+            z-index: -2;
+            filter: brightness(0.6) saturate(0.7) contrast(1.1); /* Pic 1 Cinematic Grading */
         }
 
-        /* Professional Color Grading Overlay (Darker & Less Bright) */
+        /* High-end cinematic dark blue radial overlay */
         .overlay {
             position: relative; 
             height: 100%; 
@@ -26,73 +26,79 @@
             flex-direction: column;
             justify-content: center; 
             align-items: center;
-            /* High-end cinematic dark blue overlay */
-            background: radial-gradient(circle, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.95) 100%);
+            /* Creates the deep navy focus effect from your reference */
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.75) 0%, rgba(2, 6, 23, 0.96) 100%);
             text-align: center; 
             color: white; 
             padding: 20px;
         }
 
-        /* Animations */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.4)); } 50% { filter: drop-shadow(0 0 30px rgba(255,255,255,0.6)); } }
+        /* Smooth Professional Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); } 50% { filter: drop-shadow(0 0 25px rgba(255,255,255,0.45)); } }
 
-        /* INCREASED LOGO SIZE */
+        /* INCREASED LOGO SIZE & IMPACT */
         .college-logo {
-            width: 220px; /* Signficantly increased size */
+            width: 260px; /* High-impact size for professional branding */
             height: auto;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             animation: fadeInUp 1s ease-out, float 4s ease-in-out infinite, glow 3s ease-in-out infinite;
+            z-index: 10;
         }
 
         .college-name {
-            font-size: 2.5rem; /* Slightly larger text */
+            font-size: 2.6rem; 
             font-weight: 800; 
-            letter-spacing: 2.5px;
+            letter-spacing: 1.5px;
             text-transform: uppercase; 
             margin-bottom: 12px; 
             animation: fadeInUp 1.2s ease-out;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            line-height: 1.2;
+            max-width: 850px;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.7);
         }
 
         .sub-text { 
-            font-size: 1.1rem; 
-            color: #94a3b8; /* Muted slate color for professional feel */
-            margin-bottom: 45px; 
+            font-size: 1.15rem; 
+            color: #cbd5e1; /* Slate color for premium look */
+            margin-bottom: 55px; 
             animation: fadeInUp 1.4s ease-out; 
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
+            font-weight: 400;
         }
 
+        /* Professional "Initialize" Button */
         .enter-btn {
-            padding: 18px 55px; 
+            padding: 22px 70px; 
             background: white; 
             color: #0f172a; 
             text-decoration: none; 
-            border-radius: 50px; 
-            font-weight: 700;
+            border-radius: 60px; 
+            font-weight: 800;
             text-transform: uppercase; 
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             animation: fadeInUp 1.6s ease-out;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            letter-spacing: 1px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            letter-spacing: 1.5px;
+            font-size: 1.1rem;
         }
 
         .enter-btn:hover { 
-            transform: scale(1.08) translateY(-3px); 
+            transform: scale(1.06) translateY(-5px); 
             background: #f8fafc; 
-            box-shadow: 0 15px 40px rgba(255,255,255,0.2); 
+            box-shadow: 0 25px 50px rgba(255,255,255,0.15); 
         }
 
         .footer { 
             position: absolute; 
             bottom: 30px; 
-            font-size: 0.8rem; 
-            color: #475569; 
+            font-size: 0.75rem; 
+            color: #64748b; 
             font-weight: 600;
             animation: fadeInUp 2s ease-out; 
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2.5px;
         }
     </style>
 </head>
