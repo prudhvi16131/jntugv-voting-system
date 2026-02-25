@@ -4,6 +4,8 @@ import time
 from datetime import datetime
 import pytz
 from io import BytesIO
+import sqlite3 # Database Persistence
+from werkzeug.security import generate_password_hash, check_password_hash # Encryption
 from flask import Flask, render_template, request, jsonify, make_response, url_for, session, redirect
 
 # PDF Libraries
@@ -39,8 +41,16 @@ AUTHORIZED_STUDENTS = [
     "25V15A0503", "25V15A0504"
 ]
 
-# --- NEW: PASSWORD STORAGE ---
-USER_CREDENTIALS = {} # Stores { "ID": "PASSWORD" }
+# --- PERSISTENCE: DATABASE SETUP ---
+def init_db():
+    conn = sqlite3.connect('bcet_production.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                      (student_id TEXT PRIMARY KEY, password_hash TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 ELECTION_SETTINGS = {
     "candidates": [
@@ -109,7 +119,7 @@ def index():
         display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
     return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=display_settings)
 
-# --- NEW: SIGNUP ROUTES ---
+# --- SIGNUP ROUTES WITH ENCRYPTION ---
 @app.route('/signup_page')
 def signup_page():
     return render_template('signup.html')
@@ -122,22 +132,55 @@ def register():
     if student_id not in AUTHORIZED_STUDENTS:
         return jsonify({"status": "error", "message": "ID not authorized by BCET!"})
     
-    if student_id in USER_CREDENTIALS:
-        return jsonify({"status": "error", "message": "Account already registered. Please Login."})
+    # Hash the password for security
+    hashed_password = generate_password_hash(password)
 
-    USER_CREDENTIALS[student_id] = password
-    return jsonify({"status": "success", "message": "Account created! Redirecting to Login..."})
+    try:
+        conn = sqlite3.connect('bcet_production.db')
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users VALUES (?, ?)", (student_id, hashed_password))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "message": "Account created! Redirecting to Login..."})
+    except sqlite3.IntegrityError:
+        return jsonify({"status": "error", "message": "Account already registered. Please Login."})
 
 @app.route('/login', methods=['POST'])
 def login():
     student_id = request.form.get('student_id', '').upper().strip()
     password = request.form.get('password', '').strip()
 
-    if USER_CREDENTIALS.get(student_id) == password:
+    conn = sqlite3.connect('bcet_production.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM users WHERE student_id=?", (student_id,))
+    user = cursor.fetchone()
+    conn.close()
+
+    # check_password_hash compares the input with the encrypted database version
+    if user and check_password_hash(user[0], password):
         session['user_id'] = student_id
         return redirect(url_for('index'))
     
     return render_template('login_error.html')
+
+# --- FORGOT PASSWORD (OPTIONAL RESET LOGIC) ---
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    student_id = request.form.get('student_id', '').upper().strip()
+    new_password = request.form.get('password', '').strip()
+    
+    # Security: Only allow reset if they haven't voted yet
+    nullifier = hashlib.sha256(student_id.encode()).hexdigest()
+    if nullifier in blockchain.nullifiers:
+        return jsonify({"status": "error", "message": "Password cannot be reset after voting!"})
+
+    hashed_password = generate_password_hash(new_password)
+    conn = sqlite3.connect('bcet_production.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET password_hash=? WHERE student_id=?", (hashed_password, student_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": "Password Reset Successful!"})
 
 @app.route('/logout')
 def logout():
