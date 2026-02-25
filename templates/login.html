@@ -81,6 +81,19 @@
             justify-content: center;
             gap: 5px;
         }
+
+        /* Added Registration Link Styling */
+        .signup-link {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .signup-link a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -104,6 +117,10 @@
 
         <button type="submit" class="btn-login">Verify & Enter</button>
     </form>
+
+    <div class="signup-link">
+        New voter? <a href="/signup_page">Create your account</a>
+    </div>
 
     <div class="security-note">
         <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">

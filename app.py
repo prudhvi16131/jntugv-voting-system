@@ -39,6 +39,9 @@ AUTHORIZED_STUDENTS = [
     "25V15A0503", "25V15A0504"
 ]
 
+# --- NEW: PASSWORD STORAGE ---
+USER_CREDENTIALS = {} # Stores { "ID": "PASSWORD" }
+
 ELECTION_SETTINGS = {
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"}, 
@@ -104,17 +107,36 @@ def index():
         display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
     return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=display_settings)
 
+# --- NEW: SIGNUP ROUTES ---
+@app.route('/signup_page')
+def signup_page():
+    return render_template('signup.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    student_id = request.form.get('student_id', '').upper().strip()
+    password = request.form.get('password', '').strip()
+
+    if student_id not in AUTHORIZED_STUDENTS:
+        return jsonify({"status": "error", "message": "ID not authorized by BCET!"})
+    
+    if student_id in USER_CREDENTIALS:
+        return jsonify({"status": "error", "message": "Account already registered. Please Login."})
+
+    USER_CREDENTIALS[student_id] = password
+    return jsonify({"status": "success", "message": "Account created! Redirecting to Login..."})
+
 @app.route('/login', methods=['POST'])
 def login():
     student_id = request.form.get('student_id', '').upper().strip()
     password = request.form.get('password', '').strip()
 
-    # For demo: Password is 'password123' for all valid IDs
-    if student_id in AUTHORIZED_STUDENTS and password == "password123":
+    # Checks if ID exists and password matches what the student created
+    if USER_CREDENTIALS.get(student_id) == password:
         session['user_id'] = student_id
         return redirect(url_for('index'))
     
-    return "<h1>Invalid Hall Ticket or Password</h1><a href='/'>Try Again</a>"
+    return "<h1>Invalid Credentials or Unregistered ID</h1><a href='/'>Try Again</a>"
 
 @app.route('/logout')
 def logout():
