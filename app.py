@@ -248,7 +248,8 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-@app.route(f('/admin-results/{ADMIN_SECRET}'))
+# FIXED SYNTAX HERE: Removed f(...) and used f'...'
+@app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     return render_template('results.html', 
@@ -267,7 +268,7 @@ def clear_accounts():
         try:
             conn = sqlite3.connect('bcet_production.db')
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM users") # Clear registration table
+            cursor.execute("DELETE FROM users")
             conn.commit()
             conn.close()
             return jsonify({"status": "success", "message": "Database Cleared: All student accounts removed."})
