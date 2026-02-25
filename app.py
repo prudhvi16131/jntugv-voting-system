@@ -41,12 +41,13 @@ AUTHORIZED_STUDENTS = [
     "25V15A0503", "25V15A0504"
 ]
 
-# --- DATABASE PERSISTENCE LAYER ---
+# --- PERSISTENCE: DATABASE SETUP ---
 def init_db():
     conn = sqlite3.connect('bcet_production.db')
     cursor = conn.cursor()
+    # Added 'email' column to the table
     cursor.execute('''CREATE TABLE IF NOT EXISTS users 
-                      (student_id TEXT PRIMARY KEY, password_hash TEXT)''')
+                      (student_id TEXT PRIMARY KEY, email TEXT, password_hash TEXT)''')
     conn.commit()
     conn.close()
 
@@ -126,23 +127,28 @@ def signup_page():
 @app.route('/register', methods=['POST'])
 def register():
     student_id = request.form.get('student_id', '').upper().strip()
+    email = request.form.get('email', '').strip().lower() # Get Email
     password = request.form.get('password', '').strip()
 
     if student_id not in AUTHORIZED_STUDENTS:
         return jsonify({"status": "error", "message": "ID not authorized by BCET!"})
     
-    # PRODUCTION SECURITY: Store hash, not plain text
     hashed_password = generate_password_hash(password)
 
     try:
         conn = sqlite3.connect('bcet_production.db')
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users VALUES (?, ?)", (student_id, hashed_password))
+        # Explicit check for existing student to handle refresh issues
+        cursor.execute("SELECT student_id FROM users WHERE student_id=?", (student_id,))
+        if cursor.fetchone():
+            return jsonify({"status": "error", "message": "This Hall Ticket is already registered!"})
+
+        cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (student_id, email, hashed_password))
         conn.commit()
         conn.close()
         return jsonify({"status": "success", "message": "Account created! Redirecting to Login..."})
-    except sqlite3.IntegrityError:
-        return jsonify({"status": "error", "message": "Account already registered. Please Login."})
+    except sqlite3.Error as e:
+        return jsonify({"status": "error", "message": "Database Error occurred."})
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -168,15 +174,20 @@ def forgot_password_page():
 @app.route('/reset_password', methods=['POST'])
 def reset_password():
     student_id = request.form.get('student_id', '').upper().strip()
+    email = request.form.get('email', '').strip().lower() # Verify Email
     new_password = request.form.get('password', '').strip()
     
-    nullifier = hashlib.sha256(student_id.encode()).hexdigest()
-    if nullifier in blockchain.nullifiers:
-        return jsonify({"status": "error", "message": "Password cannot be reset after voting!"})
-
-    hashed_password = generate_password_hash(new_password)
     conn = sqlite3.connect('bcet_production.db')
     cursor = conn.cursor()
+    # Verify both Hall Ticket and Email match the record
+    cursor.execute("SELECT * FROM users WHERE student_id=? AND email=?", (student_id, email))
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"status": "error", "message": "Hall Ticket and Email do not match our records!"})
+
+    hashed_password = generate_password_hash(new_password)
     cursor.execute("UPDATE users SET password_hash=? WHERE student_id=?", (hashed_password, student_id))
     conn.commit()
     conn.close()

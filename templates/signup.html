@@ -36,7 +36,7 @@
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.85rem; color: #64748b; margin-bottom: 35px; line-height: 1.5; }
 
-        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group { text-align: left; margin-bottom: 20px; position: relative; }
         
         .label-text {
             font-size: 0.7rem; font-weight: 800; color: #475569;
@@ -53,6 +53,11 @@
         .styled-input:focus {
             outline: none; border-color: #2563eb; background: #fff;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .toggle-btn {
+            position: absolute; right: 15px; top: 38px;
+            background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.1rem;
         }
 
         .btn-register {
@@ -74,6 +79,7 @@
             padding: 10px; 
             border-radius: 12px;
             color: #1e293b;
+            min-height: 20px;
         }
     </style>
 </head>
@@ -82,7 +88,7 @@
 <div class="main-card">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="BCET Logo" class="college-logo">
     <h2>Voter Registration</h2>
-    <div class="sub-heading">Set a secure password for your Hall Ticket<br>to enable Blockchain voting access.</div>
+    <div class="sub-heading">Complete your profile to enable secure<br>Blockchain voting access.</div>
 
     <form id="signupForm">
         <div class="input-group">
@@ -91,8 +97,20 @@
         </div>
 
         <div class="input-group">
-            <span class="label-text">Create Security Password</span>
-            <input type="password" id="pwd" name="password" class="styled-input" placeholder="Create a strong password" required>
+            <span class="label-text">College Email ID</span>
+            <input type="email" id="email" name="email" class="styled-input" placeholder="e.g., name@college.com" required>
+        </div>
+
+        <div class="input-group">
+            <span class="label-text">Create Password</span>
+            <input type="password" id="pwd" name="password" class="styled-input" placeholder="Min. 8 characters" required>
+            <button type="button" class="toggle-btn" onclick="togglePassword('pwd')">👁️</button>
+        </div>
+
+        <div class="input-group">
+            <span class="label-text">Confirm Password</span>
+            <input type="password" id="pwd_confirm" class="styled-input" placeholder="Repeat your password" required>
+            <button type="button" class="toggle-btn" onclick="togglePassword('pwd_confirm')">👁️</button>
         </div>
 
         <button type="button" class="btn-register" onclick="handleSignup()">Register Account</button>
@@ -106,21 +124,36 @@
 </div>
 
 <script>
+    // Show/Hide Password Feature
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
     async function handleSignup() {
-        const sid = document.getElementById('sid').value;
+        const sid = document.getElementById('sid').value.trim();
+        const email = document.getElementById('email').value.trim();
         const pwd = document.getElementById('pwd').value;
+        const pwd_confirm = document.getElementById('pwd_confirm').value;
+        const msgElement = document.getElementById('msg');
+
+        // Client-side Password Match Check
+        if(pwd !== pwd_confirm) {
+            msgElement.innerText = "Passwords do not match!";
+            msgElement.style.background = "#fef2f2";
+            msgElement.style.color = "#991b1b";
+            return;
+        }
         
         const response = await fetch('/register', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `student_id=${sid}&password=${pwd}`
+            body: `student_id=${sid}&email=${email}&password=${pwd}`
         });
         
         const data = await response.json();
-        const msgElement = document.getElementById('msg');
         msgElement.innerText = data.message;
         
-        // Add visual feedback based on status
         if(data.status === 'success') {
             msgElement.style.background = "#ecfdf5";
             msgElement.style.color = "#065f46";
