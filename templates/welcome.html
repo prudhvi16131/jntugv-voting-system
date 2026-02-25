@@ -10,13 +10,16 @@
         
         /* Layer 1: The Campus Photo (Pic 1) */
         .bg-container {
-            position: fixed; width: 100%; height: 100%;
+            position: fixed; 
+            width: 100%; 
+            height: 100%;
+            /* Ensure the filename matches exactly what is in your static folder */
             background: url('{{ url_for("static", filename="welcome-bg.jpg") }}');
             background-size: cover; 
             background-position: center;
             z-index: -2;
-            /* Applying cinematic grading to the photo */
-            filter: brightness(0.5) contrast(1.2) saturate(0.8); 
+            /* Darkens the image specifically to blend with the navy overlay */
+            filter: brightness(0.4) contrast(1.1); 
         }
 
         /* Layer 2: The Professional Navy Overlay (Pic 2 Look) */
@@ -27,8 +30,12 @@
             flex-direction: column;
             justify-content: center; 
             align-items: center;
-            /* Combined radial and linear gradient for that deep navy focus effect */
-            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.8) 0%, rgba(2, 6, 23, 0.95) 100%);
+            /* UPDATED: Semi-transparent Navy Gradient to let Pic 1 show through */
+            background: radial-gradient(
+                circle at center, 
+                rgba(15, 23, 42, 0.85) 0%, 
+                rgba(2, 6, 23, 0.96) 100%
+            );
             text-align: center; 
             color: white; 
             padding: 20px;
@@ -41,7 +48,7 @@
 
         /* INCREASED LOGO IMPACT */
         .college-logo {
-            width: 240px; /* Large professional size */
+            width: 220px; 
             height: auto;
             margin-bottom: 30px;
             animation: fadeInUp 1s ease-out, float 4s ease-in-out infinite, glow 3s ease-in-out infinite;
@@ -57,7 +64,6 @@
             animation: fadeInUp 1.2s ease-out;
             line-height: 1.2;
             max-width: 850px;
-            /* Extra shadow for readability over image */
             text-shadow: 0 4px 15px rgba(0,0,0,0.8);
         }
 
@@ -71,7 +77,6 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        /* The "Initialize" Button */
         .enter-btn {
             padding: 22px 70px; 
             background: white; 
