@@ -4,8 +4,8 @@ import time
 from datetime import datetime
 import pytz
 from io import BytesIO
-import sqlite3 # Database Persistence
-from werkzeug.security import generate_password_hash, check_password_hash # Encryption
+import sqlite3 # Persistent Storage
+from werkzeug.security import generate_password_hash, check_password_hash # Secure Hashing
 from flask import Flask, render_template, request, jsonify, make_response, url_for, session, redirect
 
 # PDF Libraries
@@ -41,7 +41,7 @@ AUTHORIZED_STUDENTS = [
     "25V15A0503", "25V15A0504"
 ]
 
-# --- PERSISTENCE: DATABASE SETUP ---
+# --- DATABASE PERSISTENCE LAYER ---
 def init_db():
     conn = sqlite3.connect('bcet_production.db')
     cursor = conn.cursor()
@@ -119,7 +119,6 @@ def index():
         display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
     return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=display_settings)
 
-# --- SIGNUP ROUTES WITH ENCRYPTION ---
 @app.route('/signup_page')
 def signup_page():
     return render_template('signup.html')
@@ -132,7 +131,7 @@ def register():
     if student_id not in AUTHORIZED_STUDENTS:
         return jsonify({"status": "error", "message": "ID not authorized by BCET!"})
     
-    # Hash the password for security
+    # PRODUCTION SECURITY: Store hash, not plain text
     hashed_password = generate_password_hash(password)
 
     try:
@@ -156,20 +155,21 @@ def login():
     user = cursor.fetchone()
     conn.close()
 
-    # check_password_hash compares the input with the encrypted database version
     if user and check_password_hash(user[0], password):
         session['user_id'] = student_id
         return redirect(url_for('index'))
     
     return render_template('login_error.html')
 
-# --- FORGOT PASSWORD (OPTIONAL RESET LOGIC) ---
+@app.route('/forgot_password_page')
+def forgot_password_page():
+    return render_template('forgot_password.html')
+
 @app.route('/reset_password', methods=['POST'])
 def reset_password():
     student_id = request.form.get('student_id', '').upper().strip()
     new_password = request.form.get('password', '').strip()
     
-    # Security: Only allow reset if they haven't voted yet
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
         return jsonify({"status": "error", "message": "Password cannot be reset after voting!"})
