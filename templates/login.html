@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCET | Voter Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-blue: #2563eb;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--blue-gradient);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-card {
+            background: #ffffff;
+            width: 90%; max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .college-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
+        .sub-heading { font-size: 0.85rem; color: #64748b; margin-bottom: 30px; line-height: 1.4; }
+
+        .input-group { text-align: left; margin-bottom: 15px; }
+        
+        .label-text {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            margin-left: 5px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .styled-input {
+            width: 100%; padding: 15px; border: 1px solid #e2e8f0; border-radius: 15px;
+            background: #f8fafc; font-size: 0.95rem; box-sizing: border-box; color: #1e293b;
+            transition: 0.3s;
+        }
+
+        .styled-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-login {
+            width: 100%; background: var(--accent-blue); color: white; padding: 18px;
+            border: none; border-radius: 15px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            margin-top: 10px;
+        }
+
+        .btn-login:hover { transform: translateY(-2px); background: #1d4ed8; }
+
+        .security-note {
+            margin-top: 25px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="BCET Logo" class="college-logo">
+    
+    <h2>Voter Login</h2>
+    <div class="sub-heading">Behara College of Engineering & Technology<br>Secure Blockchain Portal</div>
+
+    <form action="/login" method="POST">
+        <div class="input-group">
+            <span class="label-text">Hall Ticket Number</span>
+            <input type="text" name="student_id" class="styled-input" placeholder="e.g., 24V11A0501" required>
+        </div>
+
+        <div class="input-group">
+            <span class="label-text">Security Password</span>
+            <input type="password" name="password" class="styled-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-login">Verify & Enter</button>
+    </form>
+
+    <div class="security-note">
+        <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+        </svg>
+        End-to-End Encrypted Session
+    </div>
+</div>
+
+</body>
+</html>

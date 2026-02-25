@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 import pytz
 from io import BytesIO
-from flask import Flask, render_template, request, jsonify, make_response, url_for
+from flask import Flask, render_template, request, jsonify, make_response, url_for, session, redirect
 
 # PDF Libraries
 from reportlab.pdfgen import canvas
@@ -19,17 +19,35 @@ app.secret_key = "BCET_BLOCKCHAIN_2026_SECURE"
 IST = pytz.timezone('Asia/Kolkata')
 ADMIN_SECRET = "BCET_ADMIN_PRO" 
 
+# --- AUTHORIZED STUDENT LIST ---
+AUTHORIZED_STUDENTS = [
+    "24V11A0501", "24V11A0502", "24V11A0503", "24V11A0504", "24V11A0505",
+    "24V11A0506", "24V11A0507", "24V11A0510", "24V11A0511", "24V11A0512",
+    "24V11A0513", "24V11A0514", "24V11A0515", "24V11A0516", "24V11A0517",
+    "24V11A0518", "24V11A0519", "24V11A0520", "24V11A0521", "24V11A0522",
+    "24V11A0523", "24V11A0525", "24V11A0526", "24V11A0527", "24V11A0528",
+    "24V11A0529", "24V11A0530", "24V11A0531", "24V11A0532", "24V11A0534",
+    "24V11A0535", "24V11A0536", "24V11A0537", "24V11A0538", "24V11A0539",
+    "24V11A0541", "24V11A0542", "24V11A0543", "24V11A0544", "24V11A0545",
+    "24V11A0546", "24V11A0547", "24V11A0548", "24V11A0549", "24V11A0550",
+    "24V11A0551", "24V11A0552", "24V11A0553", "24V11A0554", "24V11A0555",
+    "24V11A0556", "24V11A0557", "24V11A0558", "24V11A0559", "24V11A0560",
+    "24V11A0561", "24V11A0563", "24V11A0564", "24V11A0565", "24V11A0566",
+    "24V11A0567", "24V11A0568", "24V11A0569", "24V11A0570", "24V11A0571",
+    "24V11A0572", "24V11A0573", "24V11A0574", "24V11A0575", "24V11A0576",
+    "24V11A0577", "24V11A0578", "24V11A0579", "25V15A0501", "25V15A0502",
+    "25V15A0503", "25V15A0504"
+]
+
 ELECTION_SETTINGS = {
     "candidates": [
         {"name": "Ramu", "symbol": "🦁"}, 
         {"name": "Laxman", "symbol": "🐘"}
     ],
     "start_time": "2026-02-23T09:00",
-    "end_time": "2026-02-24T23:59",
+    "end_time": "2026-02-28T23:59",
     "is_active": True,
     "authorized_prefix": "24V11A",
-    "range_start": 501,
-    "range_end": 580,
     "admin_secret": ADMIN_SECRET
 }
 
@@ -39,7 +57,6 @@ class Blockchain:
         self.reset()
 
     def reset(self):
-        """Resets the entire chain for a new election"""
         self.chain = []
         self.pending_votes = []
         self.nullifiers = set()
@@ -79,17 +96,40 @@ blockchain = Blockchain()
 
 @app.route('/')
 def index():
+    if 'user_id' not in session:
+        return render_template('login.html')
+    
     display_settings = ELECTION_SETTINGS.copy()
     if not ELECTION_SETTINGS["is_active"]:
         display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
     return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=display_settings)
 
+@app.route('/login', methods=['POST'])
+def login():
+    student_id = request.form.get('student_id', '').upper().strip()
+    password = request.form.get('password', '').strip()
+
+    # For demo: Password is 'password123' for all valid IDs
+    if student_id in AUTHORIZED_STUDENTS and password == "password123":
+        session['user_id'] = student_id
+        return redirect(url_for('index'))
+    
+    return "<h1>Invalid Hall Ticket or Password</h1><a href='/'>Try Again</a>"
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
+
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+
     if not ELECTION_SETTINGS["is_active"]:
         return "<h1>Election Closed</h1><a href='/'>Back</a>"
     
-    student_id = request.form.get('student_id', '').upper().strip()
+    student_id = session['user_id']
     candidate = request.form.get('candidate')
     raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else raw_ip
@@ -102,6 +142,7 @@ def cast_vote():
             "reason": "Double Vote Attempt", 
             "ip": user_ip
         })
+        session.pop('user_id', None) 
         return render_template('already_cast.html')
 
     blockchain.nullifiers.add(nullifier)
@@ -109,14 +150,15 @@ def cast_vote():
     blockchain.pending_votes.append({'candidate': candidate, 'receipt': receipt_id})
     blockchain.create_block(proof=123, previous_hash=blockchain.hash(blockchain.get_last_block()))
     
+    session.pop('user_id', None) 
+    
     return render_template('success.html', 
-                           candidate=candidate, 
-                           receipt=receipt_id, 
-                           timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
+                            candidate=candidate, 
+                            receipt=receipt_id, 
+                            timestamp=datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"))
 
 @app.route('/audit', methods=['GET', 'POST'])
 def audit_portal():
-    """Handles the Verify Vote Receipt logic"""
     searched_id, result = None, None
     if request.method == 'POST':
         searched_id = request.form.get('receipt', '').upper().strip()
@@ -136,11 +178,9 @@ def audit_portal():
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     return render_template('results.html', 
-                           settings=ELECTION_SETTINGS, 
-                           vote_counts=vote_counts, 
-                           logs=blockchain.security_logs)
-
-# --- ADMIN API ACTIONS ---
+                            settings=ELECTION_SETTINGS, 
+                            vote_counts=vote_counts, 
+                            logs=blockchain.security_logs)
 
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
@@ -165,18 +205,13 @@ def reset_election():
     blockchain.reset()
     return jsonify({"status": "success"})
 
-# --- BCET BRANDED PDF REPORT ---
-
 @app.route(f'/download-results/{ADMIN_SECRET}')
 def download_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
-    total_votes = sum(vote_counts.values())
-    
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
-    # Header Design
     p.setFillColor(colors.HexColor("#1e293b"))
     p.rect(0, height - 100, width, 100, fill=1, stroke=0)
     p.setFillColor(colors.white)
@@ -185,7 +220,6 @@ def download_results():
     p.setFont("Helvetica", 10)
     p.drawString(50, height - 80, f"Behara College of Engineering & Technology | {datetime.now(IST).strftime('%d %b %Y')}")
 
-    # Vote Distribution
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 14)
     p.drawString(50, height - 150, "FINAL VOTE TALLY")

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCET Voting - Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .signup-container { max-width: 400px; margin: 100px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; text-align: center; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
+        button { background-color: #059669; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 95%; }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Voter Registration</h2>
+        <p>Set a password for your Hall Ticket Number.</p>
+        <form id="signupForm">
+            <input type="text" id="sid" name="student_id" placeholder="Hall Ticket Number" required>
+            <input type="password" id="pwd" name="password" placeholder="Create Password" required>
+            <button type="button" onclick="handleSignup()">Register Account</button>
+        </form>
+        <p id="msg"></p>
+        <a href="/">Back to Login</a>
+    </div>
+
+    <script>
+        async function handleSignup() {
+            const sid = document.getElementById('sid').value;
+            const pwd = document.getElementById('pwd').value;
+            
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `student_id=${sid}&password=${pwd}`
+            });
+            
+            const data = await response.json();
+            document.getElementById('msg').innerText = data.message;
+            if(data.status === 'success') {
+                setTimeout(() => window.location.href = '/', 2000);
+            }
+        }
+    </script>
+</body>
+</html>
