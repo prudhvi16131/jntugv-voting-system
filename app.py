@@ -45,7 +45,6 @@ AUTHORIZED_STUDENTS = [
 def init_db():
     conn = sqlite3.connect('bcet_production.db')
     cursor = conn.cursor()
-    # Added 'email' column to the table
     cursor.execute('''CREATE TABLE IF NOT EXISTS users 
                       (student_id TEXT PRIMARY KEY, email TEXT, password_hash TEXT)''')
     conn.commit()
@@ -127,7 +126,7 @@ def signup_page():
 @app.route('/register', methods=['POST'])
 def register():
     student_id = request.form.get('student_id', '').upper().strip()
-    email = request.form.get('email', '').strip().lower() # Get Email
+    email = request.form.get('email', '').strip().lower()
     password = request.form.get('password', '').strip()
 
     if student_id not in AUTHORIZED_STUDENTS:
@@ -138,7 +137,6 @@ def register():
     try:
         conn = sqlite3.connect('bcet_production.db')
         cursor = conn.cursor()
-        # Explicit check for existing student to handle refresh issues
         cursor.execute("SELECT student_id FROM users WHERE student_id=?", (student_id,))
         if cursor.fetchone():
             return jsonify({"status": "error", "message": "This Hall Ticket is already registered!"})
@@ -174,12 +172,11 @@ def forgot_password_page():
 @app.route('/reset_password', methods=['POST'])
 def reset_password():
     student_id = request.form.get('student_id', '').upper().strip()
-    email = request.form.get('email', '').strip().lower() # Verify Email
+    email = request.form.get('email', '').strip().lower()
     new_password = request.form.get('password', '').strip()
     
     conn = sqlite3.connect('bcet_production.db')
     cursor = conn.cursor()
-    # Verify both Hall Ticket and Email match the record
     cursor.execute("SELECT * FROM users WHERE student_id=? AND email=?", (student_id, email))
     user = cursor.fetchone()
 
@@ -251,13 +248,33 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-@app.route(f'/admin-results/{ADMIN_SECRET}')
+@app.route(f('/admin-results/{ADMIN_SECRET}'))
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
     return render_template('results.html', 
                             settings=ELECTION_SETTINGS, 
                             vote_counts=vote_counts, 
                             logs=blockchain.security_logs)
+
+# --- ADMIN CONTROL ROUTES ---
+
+@app.route('/admin/clear_accounts', methods=['POST'])
+def clear_accounts():
+    data = request.json
+    secret = data.get('secret')
+    
+    if secret == ADMIN_SECRET:
+        try:
+            conn = sqlite3.connect('bcet_production.db')
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM users") # Clear registration table
+            conn.commit()
+            conn.close()
+            return jsonify({"status": "success", "message": "Database Cleared: All student accounts removed."})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
+    
+    return jsonify({"status": "error", "message": "Unauthorized Access!"}), 403
 
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():

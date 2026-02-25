@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCET | Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; display: flex; justify-content: center; padding: 20px; }
-        .dashboard-container { width: 100%; max-width: 500px; }
+        .dashboard-container { width: 100%; max-width: 500px; position: relative; }
         
         .header-card { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .college-logo-admin { width: 70px; height: auto; margin-bottom: 10px; }
@@ -40,13 +40,46 @@
         .btn-action { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 600; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .btn-sync { background: #10b981; color: white; }
         .btn-timing { background: #2563eb; color: white; }
-        .btn-stop { background: #ef4444; color: white; }
         .btn-add { background: #64748b; color: white; }
         
         input[type="datetime-local"] { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
         label { font-size: 0.75rem; font-weight: 700; color: #64748b; }
 
-        /* MODAL (LOGS POPUP) STYLING */
+        /* --- PROFESSIONAL MENU STYLING --- */
+        #menu-trigger {
+            position: fixed; top: 20px; right: 20px;
+            width: 45px; height: 45px; background: white;
+            border-radius: 12px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            cursor: pointer; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        #menu-trigger span { width: 20px; height: 2px; background: #1e293b; margin: 2px; border-radius: 2px; transition: 0.3s; }
+
+        #admin-sidebar {
+            position: fixed; top: 0; right: -320px;
+            width: 300px; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            color: white; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000; padding: 80px 20px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .menu-header { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin: 25px 0 10px 10px; }
+
+        .menu-item {
+            display: flex; align-items: center; width: 100%;
+            padding: 14px; margin-bottom: 8px; border: none;
+            border-radius: 12px; background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; text-align: left; gap: 10px;
+        }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.15); transform: translateX(-5px); }
+        .item-orange:hover { background: #f59e0b; color: white; }
+        .item-red:hover { background: #ef4444; color: white; }
+        /* --- END MENU STYLING --- */
+
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; }
         .log-item { border-bottom: 1px solid #e2e8f0; padding: 10px 0; font-size: 0.85rem; }
@@ -56,6 +89,27 @@
     </style>
 </head>
 <body>
+
+<div id="menu-trigger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+</div>
+
+<div id="admin-sidebar">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">⚙️</div>
+        <h3 style="margin: 0;">Admin Controls</h3>
+        <p style="font-size: 0.7rem; color: #94a3b8;">BCET Blockchain Node v2.0</p>
+    </div>
+
+    <div class="menu-header">Election Progress</div>
+    <button class="menu-item item-orange" onclick="stopElection()">⏱️ Stop Clock & End</button>
+
+    <div class="menu-header">Data Management</div>
+    <button class="menu-item item-red" onclick="clearAccounts()">🗑️ Clear Student Logins</button>
+
+    <div class="menu-header">Emergency</div>
+    <button class="menu-item" style="border:1px solid #ef4444; color:#ef4444; background:none;" onclick="resetProject()">⚠️ Factory Reset Project</button>
+</div>
 
 <div class="dashboard-container">
     <div class="header-card">
@@ -95,11 +149,6 @@
         <label>END TIME</label>
         <input type="datetime-local" id="end-time" value="{{ settings.end_time }}">
         <button class="btn-action btn-timing" onclick="updateTiming()">Update Timing Window</button>
-        <button class="btn-action btn-stop" onclick="stopElection()">Stop Clock & End Election Now</button>
-    </div>
-
-    <div class="section-card" style="border: 2px solid #ef4444; background: #fff1f2;">
-        <button class="btn-action btn-stop" style="margin: 0;" onclick="resetProject()">⚠️ Factory Reset Project</button>
     </div>
 </div>
 
@@ -122,6 +171,11 @@
 </div>
 
 <script>
+    function toggleMenu() {
+        const sidebar = document.getElementById('admin-sidebar');
+        sidebar.style.right = (sidebar.style.right === "0px") ? "-320px" : "0px";
+    }
+
     function openLogs() { document.getElementById('logModal').style.display = 'block'; }
     function closeLogs() { document.getElementById('logModal').style.display = 'none'; }
 
@@ -162,8 +216,18 @@
         }
     }
 
+    function clearAccounts() {
+        if(confirm("DANGER: This will delete all student login credentials (passwords/emails). Students must register again. Proceed?")) {
+            fetch('/admin/clear_accounts', { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ secret: '{{ settings.admin_secret }}' })
+            }).then(res => res.json()).then(data => { alert(data.message); location.reload(); });
+        }
+    }
+
     function resetProject() {
-        if(confirm("FACTORY RESET: Delete all votes?")) {
+        if(confirm("FACTORY RESET: Delete all votes and blockchain history?")) {
             fetch('/reset_election', { method: 'POST' }).then(() => location.reload());
         }
     }
