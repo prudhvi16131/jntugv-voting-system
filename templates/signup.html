@@ -3,44 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BCET Voting - Sign Up</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>BCET | Voter Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        .signup-container { max-width: 400px; margin: 100px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; text-align: center; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
-        button { background-color: #059669; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 95%; }
+        :root {
+            --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-green: #059669;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--blue-gradient);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-card {
+            background: #ffffff;
+            width: 90%; max-width: 420px;
+            padding: 50px 35px;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            text-align: center;
+        }
+
+        .college-logo {
+            width: 100px; height: auto; margin-bottom: 20px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
+        .sub-heading { font-size: 0.85rem; color: #64748b; margin-bottom: 35px; line-height: 1.5; }
+
+        .input-group { text-align: left; margin-bottom: 20px; }
+        
+        .label-text {
+            font-size: 0.7rem; font-weight: 800; color: #475569;
+            text-transform: uppercase; margin-left: 8px; margin-bottom: 8px; display: block;
+            letter-spacing: 0.5px;
+        }
+
+        .styled-input {
+            width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 18px;
+            background: #f0f7ff; font-size: 0.95rem; box-sizing: border-box; 
+            color: #1e293b; transition: all 0.3s ease;
+        }
+
+        .styled-input:focus {
+            outline: none; border-color: #2563eb; background: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-register {
+            width: 100%; background: var(--accent-green); color: white; padding: 18px;
+            border: none; border-radius: 18px; font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 12px 24px rgba(5, 150, 105, 0.25);
+            margin-top: 15px;
+        }
+
+        .btn-register:hover { transform: translateY(-2px); background: #047857; }
+
+        .footer-link { margin-top: 30px; font-size: 0.9rem; color: #64748b; }
+        .footer-link a { color: #2563eb; text-decoration: none; font-weight: 700; }
+        
+        #msg { 
+            margin-top: 20px; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            padding: 10px; 
+            border-radius: 12px;
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
-    <div class="signup-container">
-        <h2>Voter Registration</h2>
-        <p>Set a password for your Hall Ticket Number.</p>
-        <form id="signupForm">
-            <input type="text" id="sid" name="student_id" placeholder="Hall Ticket Number" required>
-            <input type="password" id="pwd" name="password" placeholder="Create Password" required>
-            <button type="button" onclick="handleSignup()">Register Account</button>
-        </form>
-        <p id="msg"></p>
-        <a href="/">Back to Login</a>
-    </div>
 
-    <script>
-        async function handleSignup() {
-            const sid = document.getElementById('sid').value;
-            const pwd = document.getElementById('pwd').value;
-            
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `student_id=${sid}&password=${pwd}`
-            });
-            
-            const data = await response.json();
-            document.getElementById('msg').innerText = data.message;
-            if(data.status === 'success') {
-                setTimeout(() => window.location.href = '/', 2000);
-            }
+<div class="main-card">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="BCET Logo" class="college-logo">
+    <h2>Voter Registration</h2>
+    <div class="sub-heading">Set a secure password for your Hall Ticket<br>to enable Blockchain voting access.</div>
+
+    <form id="signupForm">
+        <div class="input-group">
+            <span class="label-text">Hall Ticket Number</span>
+            <input type="text" id="sid" name="student_id" class="styled-input" placeholder="e.g., 24V11A0522" required>
+        </div>
+
+        <div class="input-group">
+            <span class="label-text">Create Security Password</span>
+            <input type="password" id="pwd" name="password" class="styled-input" placeholder="Create a strong password" required>
+        </div>
+
+        <button type="button" class="btn-register" onclick="handleSignup()">Register Account</button>
+    </form>
+
+    <p id="msg"></p>
+
+    <div class="footer-link">
+        Already registered? <a href="/">Back to Login</a>
+    </div>
+</div>
+
+<script>
+    async function handleSignup() {
+        const sid = document.getElementById('sid').value;
+        const pwd = document.getElementById('pwd').value;
+        
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `student_id=${sid}&password=${pwd}`
+        });
+        
+        const data = await response.json();
+        const msgElement = document.getElementById('msg');
+        msgElement.innerText = data.message;
+        
+        // Add visual feedback based on status
+        if(data.status === 'success') {
+            msgElement.style.background = "#ecfdf5";
+            msgElement.style.color = "#065f46";
+            setTimeout(() => window.location.href = '/', 2000);
+        } else {
+            msgElement.style.background = "#fef2f2";
+            msgElement.style.color = "#991b1b";
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>

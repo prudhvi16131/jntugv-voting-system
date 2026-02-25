@@ -51,6 +51,8 @@ ELECTION_SETTINGS = {
     "end_time": "2026-02-28T23:59",
     "is_active": True,
     "authorized_prefix": "24V11A",
+    "range_start": 501,
+    "range_end": 580,
     "admin_secret": ADMIN_SECRET
 }
 
@@ -131,12 +133,11 @@ def login():
     student_id = request.form.get('student_id', '').upper().strip()
     password = request.form.get('password', '').strip()
 
-    # Checks if ID exists and password matches what the student created
     if USER_CREDENTIALS.get(student_id) == password:
         session['user_id'] = student_id
         return redirect(url_for('index'))
     
-    return "<h1>Invalid Credentials or Unregistered ID</h1><a href='/'>Try Again</a>"
+    return render_template('login_error.html')
 
 @app.route('/logout')
 def logout():
