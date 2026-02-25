@@ -111,12 +111,15 @@ blockchain = Blockchain()
 
 @app.route('/welcome')
 def welcome():
-    # Renders the new animated landing page
     return render_template('welcome.html')
+
+@app.route('/login_page')
+def login_page():
+    # DIRECT ROUTE for "Back to Login" links to avoid redirection to welcome page
+    return render_template('login.html')
 
 @app.route('/')
 def index():
-    # If not logged in, force students to see the branding/welcome page first
     if 'user_id' not in session:
         return redirect(url_for('welcome'))
     
@@ -254,7 +257,6 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
-# FIXED SYNTAX HERE: Corrected route decorator
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}

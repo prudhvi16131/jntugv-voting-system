@@ -119,12 +119,11 @@
     <p id="msg"></p>
 
     <div class="footer-link">
-        Already registered? <a href="/">Back to Login</a>
+        Already registered? <a href="/login_page">Back to Login</a>
     </div>
 </div>
 
 <script>
-    // Show/Hide Password Feature
     function togglePassword(id) {
         const input = document.getElementById(id);
         input.type = input.type === 'password' ? 'text' : 'password';
@@ -137,7 +136,6 @@
         const pwd_confirm = document.getElementById('pwd_confirm').value;
         const msgElement = document.getElementById('msg');
 
-        // Client-side Password Match Check
         if(pwd !== pwd_confirm) {
             msgElement.innerText = "Passwords do not match!";
             msgElement.style.background = "#fef2f2";
@@ -157,7 +155,8 @@
         if(data.status === 'success') {
             msgElement.style.background = "#ecfdf5";
             msgElement.style.color = "#065f46";
-            setTimeout(() => window.location.href = '/', 2000);
+            // FIXED: Redirects to login page after successful registration
+            setTimeout(() => window.location.href = '/login_page', 2000);
         } else {
             msgElement.style.background = "#fef2f2";
             msgElement.style.color = "#991b1b";

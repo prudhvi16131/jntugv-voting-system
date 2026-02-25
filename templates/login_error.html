@@ -27,6 +27,12 @@
             transition: 0.3s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
         }
         .btn-retry:hover { background: #1d4ed8; transform: translateY(-2px); }
+        
+        .signup-link {
+            margin-top: 25px; display: block; font-size: 0.85rem;
+            color: #64748b; text-decoration: none;
+        }
+        .signup-link b { color: #2563eb; }
     </style>
 </head>
 <body>
@@ -39,7 +45,10 @@
         </div>
         <h2>Verification Failed</h2>
         <p>The Hall Ticket number or Password entered is incorrect, or this ID has not been registered yet.</p>
-        <a href="/" class="btn-retry">Try Again</a>
+        
+        <a href="/login_page" class="btn-retry">Try Again</a>
+        
+        <a href="/signup_page" class="signup-link">Don't have an account? <b>Register here</b></a>
     </div>
 </body>
 </html>
