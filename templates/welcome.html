@@ -8,34 +8,24 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #020617; }
         
-        /* Layer 1: The Campus Photo (Pic 1) */
-        .bg-container {
+        /* Layer 1 & 2 Combined: The Campus Photo with Navy Tint */
+        .bg-wrapper {
             position: fixed; 
-            width: 100%; 
-            height: 100%;
-            /* Ensure the filename welcome-bg.jpg is exactly what you saved in static folder */
-            background: url('{{ url_for("static", filename="welcome-bg.jpg") }}');
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            /* This combines the Pic 2 Navy style directly ON TOP of the Pic 1 Campus image */
+            background: 
+                linear-gradient(
+                    135deg, 
+                    rgba(15, 23, 42, 0.9) 0%,   /* Dark Navy */
+                    rgba(2, 6, 23, 0.95) 100%   /* Deep Night Blue */
+                ),
+                url('{{ url_for("static", filename="welcome-bg.jpg") }}');
             background-size: cover; 
             background-position: center;
-            z-index: -2;
-            /* Adjust brightness so Pic 1 is visible but doesn't distract from text */
-            filter: brightness(0.5) contrast(1.2); 
-        }
-
-        /* Layer 2: The Professional Navy Overlay (Pic 2 Look) */
-        .color-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Semi-transparent navy gradient allows Pic 1 to show through */
-            background: linear-gradient(
-                135deg, 
-                rgba(15, 23, 42, 0.88) 0%, 
-                rgba(2, 6, 23, 0.94) 100%
-            );
             z-index: -1;
+            /* Makes the campus photo look cinematic */
+            filter: contrast(1.1) brightness(0.9);
         }
 
         .main-content {
@@ -51,34 +41,35 @@
         }
 
         /* Animations */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); } 50% { filter: drop-shadow(0 0 25px rgba(255,255,255,0.45)); } }
+        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); } 50% { filter: drop-shadow(0 0 30px rgba(255,255,255,0.5)); } }
 
         /* INCREASED LOGO IMPACT */
         .college-logo {
-            width: 220px; 
+            width: 200px; 
             height: auto;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             animation: fadeInUp 1s ease-out, float 4s ease-in-out infinite, glow 3s ease-in-out infinite;
         }
 
         .college-name {
-            font-size: 2.6rem; 
+            font-size: 2.5rem; 
             font-weight: 800; 
             letter-spacing: 1.5px;
             text-transform: uppercase; 
             margin-bottom: 12px; 
             animation: fadeInUp 1.2s ease-out;
             line-height: 1.2;
-            max-width: 850px;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            max-width: 900px;
+            /* Text Shadow ensures visibility over the campus image */
+            text-shadow: 0 4px 20px rgba(0,0,0,0.6);
         }
 
         .sub-text { 
-            font-size: 1.15rem; 
+            font-size: 1.1rem; 
             color: #cbd5e1; 
-            margin-bottom: 55px; 
+            margin-bottom: 50px; 
             animation: fadeInUp 1.4s ease-out; 
             letter-spacing: 1px;
             font-weight: 400;
@@ -86,47 +77,45 @@
         }
 
         .enter-btn {
-            padding: 22px 70px; 
-            background: white; 
+            padding: 20px 60px; 
+            background: #ffffff; 
             color: #0f172a; 
             text-decoration: none; 
             border-radius: 60px; 
             font-weight: 800;
             text-transform: uppercase; 
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            transition: 0.3s ease; 
             animation: fadeInUp 1.6s ease-out;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            letter-spacing: 1.5px;
-            font-size: 1.1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+            font-size: 1.05rem;
         }
 
         .enter-btn:hover { 
-            transform: scale(1.06) translateY(-5px); 
-            background: #f8fafc; 
-            box-shadow: 0 20px 45px rgba(255,255,255,0.1); 
+            transform: translateY(-5px); 
+            background: #f1f5f9; 
+            box-shadow: 0 15px 40px rgba(255,255,255,0.15); 
         }
 
         .footer { 
             position: absolute; 
             bottom: 30px; 
-            font-size: 0.75rem; 
-            color: #64748b; 
+            font-size: 0.7rem; 
+            color: #94a3b8; 
             font-weight: 600;
             animation: fadeInUp 2s ease-out; 
             text-transform: uppercase;
-            letter-spacing: 2.5px;
+            letter-spacing: 3px;
         }
     </style>
 </head>
 <body>
-    <div class="bg-container"></div>
-
-    <div class="color-overlay"></div>
+    <div class="bg-wrapper"></div>
     
     <div class="main-content">
         <img src="{{ url_for('static', filename='logo.png') }}" class="college-logo" alt="BCET Logo">
         
-        <div class="college-name">BEHARA COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
+        <div class="college-name">BEHARA COLLEGE OF<br>ENGINEERING AND TECHNOLOGY</div>
         <div class="sub-text">Digital India Initiative | Secure Blockchain Voting Portal</div>
         
         <a href="/login_page" class="enter-btn">Initialize Voting System</a>
