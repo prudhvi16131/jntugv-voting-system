@@ -4,57 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome | BCET Voting</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #0f172a; }
         
-        /* Background with Blue Gradient Overlay */
+        /* Background using your local file */
         .bg-container {
             position: fixed; width: 100%; height: 100%;
-            background: url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1350&q=80');
-            background-size: cover; background-position: center; filter: brightness(0.3);
+            /* Make sure your generated image is saved as welcome-bg.jpg in the static folder */
+            background: url('{{ url_for("static", filename="welcome-bg.jpg") }}');
+            background-size: cover; 
+            background-position: center;
+            z-index: -1;
         }
 
+        /* Professional Color Grading Overlay (Darker & Less Bright) */
         .overlay {
-            position: relative; height: 100%; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.9));
-            text-align: center; color: white; padding: 20px;
+            position: relative; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            /* High-end cinematic dark blue overlay */
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.95) 100%);
+            text-align: center; 
+            color: white; 
+            padding: 20px;
         }
 
         /* Animations */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.4)); } 50% { filter: drop-shadow(0 0 30px rgba(255,255,255,0.6)); } }
 
+        /* INCREASED LOGO SIZE */
         .college-logo {
-            width: 130px; margin-bottom: 20px;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
-            animation: fadeInUp 1s ease-out, float 3s ease-in-out infinite;
+            width: 220px; /* Signficantly increased size */
+            height: auto;
+            margin-bottom: 25px;
+            animation: fadeInUp 1s ease-out, float 4s ease-in-out infinite, glow 3s ease-in-out infinite;
         }
 
         .college-name {
-            font-size: 2.2rem; font-weight: 700; letter-spacing: 2px;
-            text-transform: uppercase; margin-bottom: 10px; animation: fadeInUp 1.2s ease-out;
+            font-size: 2.5rem; /* Slightly larger text */
+            font-weight: 800; 
+            letter-spacing: 2.5px;
+            text-transform: uppercase; 
+            margin-bottom: 12px; 
+            animation: fadeInUp 1.2s ease-out;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        .sub-text { font-size: 1rem; color: #cbd5e1; margin-bottom: 40px; animation: fadeInUp 1.4s ease-out; }
+        .sub-text { 
+            font-size: 1.1rem; 
+            color: #94a3b8; /* Muted slate color for professional feel */
+            margin-bottom: 45px; 
+            animation: fadeInUp 1.4s ease-out; 
+            letter-spacing: 1px;
+        }
 
         .enter-btn {
-            padding: 16px 45px; background: white; color: #1e3a8a;
-            text-decoration: none; border-radius: 50px; font-weight: 700;
-            text-transform: uppercase; transition: 0.3s; animation: fadeInUp 1.6s ease-out;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            padding: 18px 55px; 
+            background: white; 
+            color: #0f172a; 
+            text-decoration: none; 
+            border-radius: 50px; 
+            font-weight: 700;
+            text-transform: uppercase; 
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            animation: fadeInUp 1.6s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
         }
 
-        .enter-btn:hover { transform: scale(1.05); background: #f1f5f9; box-shadow: 0 15px 30px rgba(255,255,255,0.2); }
+        .enter-btn:hover { 
+            transform: scale(1.08) translateY(-3px); 
+            background: #f8fafc; 
+            box-shadow: 0 15px 40px rgba(255,255,255,0.2); 
+        }
 
-        .footer { position: absolute; bottom: 30px; font-size: 0.75rem; color: #94a3b8; animation: fadeInUp 2s ease-out; }
+        .footer { 
+            position: absolute; 
+            bottom: 30px; 
+            font-size: 0.8rem; 
+            color: #475569; 
+            font-weight: 600;
+            animation: fadeInUp 2s ease-out; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
     <div class="bg-container"></div>
     <div class="overlay">
         <img src="{{ url_for('static', filename='logo.png') }}" class="college-logo" alt="BCET Logo">
+        
         <div class="college-name">BEHARA COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
         <div class="sub-text">Digital India Initiative | Secure Blockchain Voting Portal</div>
         
