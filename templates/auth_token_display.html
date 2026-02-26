@@ -1,0 +1,20 @@
+<div class="card">
+    <div class="icon-circle">💎</div>
+    <h2>Blockchain Auth Token</h2>
+    <p>Your session has been mined. Copy this unique code to access the voting portal.</p>
+
+    <div style="background: #f0fdf4; border: 2px dashed #22c55e; padding: 20px; border-radius: 15px; margin: 20px 0;">
+        <h1 style="letter-spacing: 5px; font-family: monospace; color: #14532d;" id="tokenText">{{ token }}</h1>
+    </div>
+
+    <button onclick="copyToken()" class="btn-reset">Copy Token</button>
+    <a href="/verify_token_page" class="btn-next">Proceed to Verification</a>
+</div>
+
+<script>
+function copyToken() {
+    const text = document.getElementById('tokenText').innerText;
+    navigator.clipboard.writeText(text);
+    alert("Token Copied to Clipboard!");
+}
+</script>

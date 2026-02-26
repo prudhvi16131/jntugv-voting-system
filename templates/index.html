@@ -17,7 +17,7 @@
             background: var(--blue-gradient);
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
-            flex-direction: column; /* Added to accommodate logout bar */
+            flex-direction: column; 
         }
 
         /* LOGOUT BAR */
@@ -63,6 +63,32 @@
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
+        /* BLOCKCHAIN TOKEN BOX (New Style) */
+        .token-box {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .token-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #166534;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .token-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #14532d;
+            font-weight: 700;
+            margin: 0;
+        }
+
         .timer-box {
             background: #fff5f5;
             border: 1px solid #ffe3e3;
@@ -101,7 +127,7 @@
             border-radius: 12px;
             font-size: 0.85rem;
             color: #475569;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -116,9 +142,25 @@
 
         .btn-confirm:hover { transform: translateY(-2px); }
 
+        /* QUOTE BRANDING */
+        .quote-container {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .quote-text {
+            font-style: italic;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .quote-text span { color: var(--accent-blue); }
+
         .verify-link { 
             display: inline-block; 
-            margin-top: 25px; 
+            margin-top: 15px; 
             color: var(--accent-blue); 
             text-decoration: underline; 
             font-weight: 600; 
@@ -127,6 +169,10 @@
     </style>
 </head>
 <body>
+
+{% if not session.get('token_verified') %}
+<script>window.location.href = "/login_page";</script>
+{% endif %}
 
 <div class="top-bar">
     <a href="/logout" class="logout-btn">Exit Session</a>
@@ -137,6 +183,11 @@
     
     <h2>BCET E-Voting</h2>
     <div class="sub-heading">Blockchain-Secured Student Election</div>
+
+    <div class="token-box">
+        <div class="token-label">Blockchain Session ID:</div>
+        <p class="token-value">{{ session.get('generated_token') }}</p>
+    </div>
 
     <div class="timer-box">
         <div class="timer-label">Election Window Closing In:</div>
@@ -166,6 +217,10 @@
     </form>
 
     <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
+
+    <div class="quote-container">
+        <p class="quote-text">" <span>One Student</span> — <span>One Vote</span> "</p>
+    </div>
 </div>
 
 <script>

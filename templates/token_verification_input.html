@@ -1,0 +1,15 @@
+<div class="card">
+    <h2>Secure Gateway</h2>
+    <p>Paste your 12-digit Blockchain Token below.</p>
+
+    <form action="/verify_token" method="POST">
+        <input type="text" name="input_token" class="styled-input" placeholder="Enter Token Here" required>
+        <button type="submit" class="btn-reset" style="background: #10b981;">Verify & Access Ballot</button>
+    </form>
+    
+    {% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
+
+    <div class="quote-container">
+        <p class="quote-text">" <span>One Student</span> — <span>One Vote</span> "</p>
+    </div>
+</div>
