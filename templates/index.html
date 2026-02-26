@@ -63,7 +63,7 @@
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
-        /* BLOCKCHAIN TOKEN BOX (New Style) */
+        /* BLOCKCHAIN TOKEN BOX (Enhanced Style) */
         .token-box {
             background: #f0fdf4;
             border-left: 4px solid #22c55e;
@@ -71,6 +71,7 @@
             border-radius: 12px;
             margin-bottom: 20px;
             text-align: left;
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.1); /* Subtle green glow */
         }
 
         .token-label {
@@ -87,6 +88,7 @@
             color: #14532d;
             font-weight: 700;
             margin: 0;
+            word-break: break-all;
         }
 
         .timer-box {
@@ -171,7 +173,7 @@
 <body>
 
 {% if not session.get('token_verified') %}
-<script>window.location.href = "/login_page";</script>
+<script>window.location.href = "/auth_token_display";</script>
 {% endif %}
 
 <div class="top-bar">

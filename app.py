@@ -111,6 +111,9 @@ blockchain = Blockchain()
 
 @app.route('/welcome')
 def welcome():
+    # If student is already verified, don't show welcome, take them to vote
+    if 'user_id' in session and session.get('token_verified'):
+        return redirect(url_for('index'))
     return render_template('welcome.html')
 
 @app.route('/login_page')
@@ -119,10 +122,11 @@ def login_page():
 
 @app.route('/')
 def index():
+    # SECURITY GATE 1: Must be logged in
     if 'user_id' not in session:
         return redirect(url_for('welcome'))
     
-    # NEW GATEKEEPER: Prevent access unless blockchain token is verified
+    # SECURITY GATE 2: Must have verified the Blockchain Token
     if not session.get('token_verified'):
         return redirect(url_for('auth_token_display'))
     
@@ -144,7 +148,7 @@ def auth_token_display():
     blockchain_token = hashlib.sha256(raw_data.encode()).hexdigest().upper()[:12]
     
     session['generated_token'] = blockchain_token
-    session['token_verified'] = False # Ensure status is False until verified
+    session['token_verified'] = False 
     
     return render_template('auth_token_display.html', token=blockchain_token)
 
@@ -160,33 +164,13 @@ def verify_token():
     actual_token = session.get('generated_token')
 
     if user_input and user_input == actual_token:
+        # This unlocks the 'index' route
         session['token_verified'] = True
         return redirect(url_for('index'))
     else:
-        return render_template('token_verification_input.html', error="Invalid Token! Ensure you copied correctly.")
+        return render_template('token_verification_input.html', error="Invalid Token! Please ensure you copied correctly.")
 
-# --- UPDATED LOGIN ROUTE ---
-
-@app.route('/login', methods=['POST'])
-def login():
-    student_id = request.form.get('student_id', '').upper().strip()
-    password = request.form.get('password', '').strip()
-
-    conn = sqlite3.connect('bcet_production.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT password_hash FROM users WHERE student_id=?", (student_id,))
-    user = cursor.fetchone()
-    conn.close()
-
-    if user and check_password_hash(user[0], password):
-        session['user_id'] = student_id
-        session['token_verified'] = False
-        # REDIRECT TO THE TOKEN GENERATION SCREEN INSTEAD OF INDEX
-        return redirect(url_for('auth_token_display'))
-    
-    return render_template('login_error.html')
-
-# --- REMAINING ORIGINAL ROUTES (Unchanged) ---
+# --- AUTHENTICATION ROUTES ---
 
 @app.route('/signup_page')
 def signup_page():
@@ -217,6 +201,25 @@ def register():
     except sqlite3.Error as e:
         return jsonify({"status": "error", "message": "Database Error occurred."})
 
+@app.route('/login', methods=['POST'])
+def login():
+    student_id = request.form.get('student_id', '').upper().strip()
+    password = request.form.get('password', '').strip()
+
+    conn = sqlite3.connect('bcet_production.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM users WHERE student_id=?", (student_id,))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user and check_password_hash(user[0], password):
+        session['user_id'] = student_id
+        session['token_verified'] = False # Reset token status for fresh session
+        # Redirect to Token Display bridge instead of voting page
+        return redirect(url_for('auth_token_display'))
+    
+    return render_template('login_error.html')
+
 @app.route('/forgot_password_page')
 def forgot_password_page():
     return render_template('forgot_password.html')
@@ -244,12 +247,14 @@ def reset_password():
 
 @app.route('/logout')
 def logout():
-    session.clear() # Clear everything to be safe
+    session.clear() 
     return redirect(url_for('welcome'))
+
+# --- VOTING & AUDIT ---
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
-    # Security check for session and token verification
+    # Security: Ensure they didn't bypass the token
     if 'user_id' not in session or not session.get('token_verified'):
         return redirect(url_for('welcome'))
 
@@ -301,6 +306,8 @@ def audit_portal():
             if result: break
     return render_template('audit.html', searched_id=searched_id, result=result)
 
+# --- ADMIN ROUTES ---
+
 @app.route(f'/admin-results/{ADMIN_SECRET}')
 def admin_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
@@ -308,8 +315,6 @@ def admin_results():
                             settings=ELECTION_SETTINGS, 
                             vote_counts=vote_counts, 
                             logs=blockchain.security_logs)
-
-# --- ADMIN CONTROL ROUTES ---
 
 @app.route('/admin/clear_accounts', methods=['POST'])
 def clear_accounts():
@@ -323,11 +328,11 @@ def clear_accounts():
             cursor.execute("DELETE FROM users")
             conn.commit()
             conn.close()
-            return jsonify({"status": "success", "message": "Database Cleared: All student accounts removed."})
+            return jsonify({"status": "success", "message": "Database Cleared."})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)})
     
-    return jsonify({"status": "error", "message": "Unauthorized Access!"}), 403
+    return jsonify({"status": "error", "message": "Unauthorized!"}), 403
 
 @app.route('/sync_candidates', methods=['POST'])
 def sync_candidates():
