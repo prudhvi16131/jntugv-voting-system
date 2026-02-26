@@ -1,14 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Auth | BCET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: var(--blue-gradient); 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; 
+        }
+
+        .card {
+            background: #ffffff;
+            width: 90%; max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .icon-circle {
+            width: 70px; height: 70px;
+            background: #f0fdf4; color: #22c55e;
+            border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 2rem;
+            box-shadow: 0 10px 15px rgba(34, 197, 94, 0.1);
+        }
+
+        h2 { color: #1e293b; margin: 0 0 10px; font-weight: 700; font-size: 1.5rem; }
+        p { color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px; }
+
+        .btn-reset {
+            width: 100%; background: #22c55e; color: white; padding: 16px;
+            border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
+            transition: 0.3s; margin-bottom: 20px; font-size: 1rem;
+            box-shadow: 0 8px 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-reset:hover { transform: translateY(-2px); background: #16a34a; }
+
+        .btn-next {
+            display: block; color: #2563eb; text-decoration: none;
+            font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;
+        }
+
+        /* Professional Quote Styling */
+        .quote-container {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .quote-text {
+            font-style: italic;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .quote-text span { color: #2563eb; }
+    </style>
+</head>
+<body>
+
 <div class="card">
     <div class="icon-circle">💎</div>
     <h2>Blockchain Auth Token</h2>
     <p>Your session has been mined. Copy this unique code to access the voting portal.</p>
 
     <div style="background: #f0fdf4; border: 2px dashed #22c55e; padding: 20px; border-radius: 15px; margin: 20px 0;">
-        <h1 style="letter-spacing: 5px; font-family: monospace; color: #14532d;" id="tokenText">{{ token }}</h1>
+        <h1 style="letter-spacing: 5px; font-family: monospace; color: #14532d; margin: 0;" id="tokenText">{{ token }}</h1>
     </div>
 
     <button onclick="copyToken()" class="btn-reset">Copy Token</button>
     <a href="/verify_token_page" class="btn-next">Proceed to Verification</a>
+
+    <div class="quote-container">
+        <p class="quote-text">" <span>One Student</span> — <span>One Vote</span> "</p>
+    </div>
 </div>
 
 <script>
@@ -18,3 +94,6 @@ function copyToken() {
     alert("Token Copied to Clipboard!");
 }
 </script>
+
+</body>
+</html>
