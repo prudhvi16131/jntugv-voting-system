@@ -63,7 +63,7 @@
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
-        /* BLOCKCHAIN TOKEN BOX (Enhanced Style) */
+        /* BLOCKCHAIN TOKEN BOX */
         .token-box {
             background: #f0fdf4;
             border-left: 4px solid #22c55e;
@@ -71,7 +71,7 @@
             border-radius: 12px;
             margin-bottom: 20px;
             text-align: left;
-            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.1); /* Subtle green glow */
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.1);
         }
 
         .token-label {
@@ -144,7 +144,6 @@
 
         .btn-confirm:hover { transform: translateY(-2px); }
 
-        /* QUOTE BRANDING */
         .quote-container {
             margin-top: 25px;
             padding-top: 15px;
@@ -167,6 +166,16 @@
             text-decoration: underline; 
             font-weight: 600; 
             font-size: 0.85rem;
+        }
+
+        .locked-msg {
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 15px;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -192,8 +201,18 @@
     </div>
 
     <div class="timer-box">
-        <div class="timer-label">Election Window Closing In:</div>
-        <div id="countdown" class="timer-value">00h 00m 00s</div>
+        {% if election_status == "OPEN" %}
+            <div class="timer-label">Election Window Closing In:</div>
+            <div id="countdown" class="timer-value">00h 00m 00s</div>
+        {% elif election_status == "NOT_STARTED" %}
+            <div class="timer-label" style="color: #64748b;">Election Starts At:</div>
+            <div class="timer-value" style="color: #64748b; font-size: 1.5rem; font-style: normal !important;">
+                {{ settings.start_time.replace('T', ' ') }}
+            </div>
+        {% else %}
+            <div class="timer-label" style="color: #ef4444;">Election Status:</div>
+            <div class="timer-value" style="color: #ef4444; font-style: normal !important;">CLOSED</div>
+        {% endif %}
     </div>
 
     <div class="voter-badge">
@@ -203,6 +222,7 @@
         Authenticated: <strong>{{ session['user_id'] }}</strong>
     </div>
 
+    {% if election_status == "OPEN" %}
     <form action="/cast_vote" method="POST">
         <input type="hidden" name="student_id" value="{{ session['user_id'] }}">
 
@@ -217,6 +237,11 @@
 
         <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
     </form>
+    {% else %}
+    <div class="locked-msg">
+        🔒 The voting portal is currently locked.
+    </div>
+    {% endif %}
 
     <a href="/audit" class="verify-link">Verify Your Vote Receipt</a>
 
@@ -226,6 +251,7 @@
 </div>
 
 <script>
+    {% if election_status == "OPEN" %}
     const targetDate = new Date("{{ settings.end_time }}").getTime();
     function updateCountdown() {
         const now = new Date().getTime();
@@ -248,6 +274,7 @@
 
     setInterval(updateCountdown, 1000);
     updateCountdown();
+    {% endif %}
 </script>
 </body>
 </html>

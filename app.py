@@ -59,7 +59,7 @@ ELECTION_SETTINGS = {
     ],
     "start_time": "2026-02-23T09:00",
     "end_time": "2026-02-28T23:59",
-    "is_active": True,
+    "is_active": False, # Initially set to False
     "authorized_prefix": "24V11A",
     "range_start": 501,
     "range_end": 580,
@@ -111,7 +111,6 @@ blockchain = Blockchain()
 
 @app.route('/welcome')
 def welcome():
-    # If student is already verified, don't show welcome, take them to vote
     if 'user_id' in session and session.get('token_verified'):
         return redirect(url_for('index'))
     return render_template('welcome.html')
@@ -122,18 +121,28 @@ def login_page():
 
 @app.route('/')
 def index():
-    # SECURITY GATE 1: Must be logged in
     if 'user_id' not in session:
         return redirect(url_for('welcome'))
     
-    # SECURITY GATE 2: Must have verified the Blockchain Token
     if not session.get('token_verified'):
         return redirect(url_for('auth_token_display'))
     
+    # --- DYNAMIC ELECTION STATUS CHECK ---
+    now = datetime.now(IST)
+    start = datetime.strptime(ELECTION_SETTINGS["start_time"], "%Y-%m-%dT%H:%M").replace(tzinfo=IST)
+    end = datetime.strptime(ELECTION_SETTINGS["end_time"], "%Y-%m-%dT%H:%M").replace(tzinfo=IST)
+    
+    status = "OPEN"
+    if not ELECTION_SETTINGS["is_active"] or now > end:
+        status = "CLOSED"
+    elif now < start:
+        status = "NOT_STARTED"
+    
     display_settings = ELECTION_SETTINGS.copy()
-    if not ELECTION_SETTINGS["is_active"]:
-        display_settings["end_time"] = datetime.now(IST).strftime("%Y-%m-%dT%H:%M")
-    return render_template('index.html', candidate_list=ELECTION_SETTINGS["candidates"], settings=display_settings)
+    return render_template('index.html', 
+                           candidate_list=ELECTION_SETTINGS["candidates"], 
+                           settings=display_settings,
+                           election_status=status)
 
 # --- NEW: BLOCKCHAIN AUTH TOKEN ROUTES ---
 
@@ -142,7 +151,6 @@ def auth_token_display():
     if 'user_id' not in session:
         return redirect(url_for('login_page'))
     
-    # Generate unique 12-char Blockchain Token based on ID and Time
     sid = session['user_id']
     raw_data = f"{sid}{time.time()}{app.secret_key}"
     blockchain_token = hashlib.sha256(raw_data.encode()).hexdigest().upper()[:12]
@@ -164,7 +172,6 @@ def verify_token():
     actual_token = session.get('generated_token')
 
     if user_input and user_input == actual_token:
-        # This unlocks the 'index' route
         session['token_verified'] = True
         return redirect(url_for('index'))
     else:
@@ -214,8 +221,7 @@ def login():
 
     if user and check_password_hash(user[0], password):
         session['user_id'] = student_id
-        session['token_verified'] = False # Reset token status for fresh session
-        # Redirect to Token Display bridge instead of voting page
+        session['token_verified'] = False 
         return redirect(url_for('auth_token_display'))
     
     return render_template('login_error.html')
@@ -254,11 +260,13 @@ def logout():
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
-    # Security: Ensure they didn't bypass the token
     if 'user_id' not in session or not session.get('token_verified'):
         return redirect(url_for('welcome'))
 
-    if not ELECTION_SETTINGS["is_active"]:
+    # Re-verify status before accepting vote
+    now = datetime.now(IST)
+    end = datetime.strptime(ELECTION_SETTINGS["end_time"], "%Y-%m-%dT%H:%M").replace(tzinfo=IST)
+    if not ELECTION_SETTINGS["is_active"] or now > end:
         return "<h1>Election Closed</h1><a href='/'>Back</a>"
     
     student_id = session['user_id']
