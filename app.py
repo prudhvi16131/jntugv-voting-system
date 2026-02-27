@@ -75,8 +75,17 @@ class Blockchain:
         self.chain = []
         self.pending_votes = []
         self.nullifiers = set()
-        self.security_logs = [] 
+        self.security_logs = [] # Feature Added: High-Tech Security Logging
         self.create_block(previous_hash='1', proof=100)
+
+    # Method Added: Records unauthorized or duplicate attempts
+    def log_intrusion(self, user_id, reason, ip):
+        self.security_logs.append({
+            "id": user_id,
+            "time": datetime.now(IST).strftime("%H:%M:%S"),
+            "reason": reason,
+            "ip": ip
+        })
 
     def create_block(self, proof, previous_hash):
         block = {
@@ -111,6 +120,7 @@ blockchain = Blockchain()
 
 @app.route('/welcome')
 def welcome():
+    # If student is already verified, don't show welcome, take them to vote
     if 'user_id' in session and session.get('token_verified'):
         return redirect(url_for('index'))
     return render_template('welcome.html')
@@ -121,9 +131,11 @@ def login_page():
 
 @app.route('/')
 def index():
+    # SECURITY GATE 1: Must be logged in
     if 'user_id' not in session:
         return redirect(url_for('welcome'))
     
+    # SECURITY GATE 2: Must have verified the Blockchain Token
     if not session.get('token_verified'):
         return redirect(url_for('auth_token_display'))
     
@@ -151,6 +163,7 @@ def auth_token_display():
     if 'user_id' not in session:
         return redirect(url_for('login_page'))
     
+    # Generate unique 12-char Blockchain Token based on ID and Time
     sid = session['user_id']
     raw_data = f"{sid}{time.time()}{app.secret_key}"
     blockchain_token = hashlib.sha256(raw_data.encode()).hexdigest().upper()[:12]
@@ -172,6 +185,7 @@ def verify_token():
     actual_token = session.get('generated_token')
 
     if user_input and user_input == actual_token:
+        # This unlocks the 'index' route
         session['token_verified'] = True
         return redirect(url_for('index'))
     else:
@@ -221,7 +235,8 @@ def login():
 
     if user and check_password_hash(user[0], password):
         session['user_id'] = student_id
-        session['token_verified'] = False 
+        session['token_verified'] = False # Reset token status for fresh session
+        # Redirect to Token Display bridge instead of voting page
         return redirect(url_for('auth_token_display'))
     
     return render_template('login_error.html')
@@ -260,30 +275,27 @@ def logout():
 
 @app.route('/cast_vote', methods=['POST'])
 def cast_vote():
+    # Security: Ensure they didn't bypass the token
     if 'user_id' not in session or not session.get('token_verified'):
         return redirect(url_for('welcome'))
 
-    # Re-verify status before accepting vote
-    now = datetime.now(IST)
-    end = datetime.strptime(ELECTION_SETTINGS["end_time"], "%Y-%m-%dT%H:%M").replace(tzinfo=IST)
-    if not ELECTION_SETTINGS["is_active"] or now > end:
+    if not ELECTION_SETTINGS["is_active"]:
         return "<h1>Election Closed</h1><a href='/'>Back</a>"
     
     student_id = session['user_id']
     candidate = request.form.get('candidate')
     raw_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else raw_ip
+    user_ip = raw_ip.split(',')[0].strip() if raw_ip and ',' in raw_ip else request.remote_addr
 
     nullifier = hashlib.sha256(student_id.encode()).hexdigest()
     if nullifier in blockchain.nullifiers:
-        blockchain.security_logs.append({
-            "id": student_id, 
-            "time": datetime.now(IST).strftime("%H:%M:%S"), 
-            "reason": "Double Vote Attempt", 
-            "ip": user_ip
-        })
+        # Log intrusion to blockchain security system
+        blockchain.log_intrusion(student_id, "Double Vote Attempt", user_ip)
         session.clear() 
         return render_template('already_cast.html')
+
+    # FEATURE: Mining Delay (Simulates block production for the progress bar animation)
+    time.sleep(1.5)
 
     blockchain.nullifiers.add(nullifier)
     receipt_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:12].upper()
@@ -368,6 +380,11 @@ def reset_election():
 @app.route(f'/download-results/{ADMIN_SECRET}')
 def download_results():
     vote_counts = {c['name']: blockchain.get_vote_count(c['name']) for c in ELECTION_SETTINGS["candidates"]}
+    
+    # FEATURE: Winner Calculation for PDF Certificate
+    winner_name = max(vote_counts, key=vote_counts.get)
+    max_votes = vote_counts[winner_name]
+
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -382,14 +399,28 @@ def download_results():
 
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, height - 150, "FINAL VOTE TALLY")
-    
-    y = height - 180
+    p.drawString(50, height - 150, "FINAL ELECTION SUMMARY")
+
+    # Winner Announcement on PDF
+    p.setFont("Helvetica-Bold", 18)
+    if max_votes > 0:
+        p.setFillColor(colors.HexColor("#16a34a"))
+        p.drawCentredString(width/2, height - 210, f"OFFICIAL WINNER: {winner_name.upper()}")
+        p.setFont("Helvetica", 12)
+        p.setFillColor(colors.black)
+        p.drawCentredString(width/2, height - 230, f"Secured {max_votes} Verified Blockchain Votes")
+    else:
+        p.drawCentredString(width/2, height - 210, "RESULT: NO VOTES CAST")
+
+    # Full Tally Table
+    y = height - 300
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Candidate Vote Tally:")
+    y -= 25
     for name, count in vote_counts.items():
         p.setFont("Helvetica", 12)
-        p.drawString(50, y, f"{name}:")
-        p.drawRightString(width - 50, y, f"{count} Votes")
-        y -= 25
+        p.drawString(70, y, f"• {name}: {count} Votes")
+        y -= 20
 
     p.showPage()
     p.save()
@@ -397,7 +428,7 @@ def download_results():
     buffer.close()
     
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=BCET_Election_Results.pdf"
+    response.headers['Content-Disposition'] = f"attachment; filename=BCET_Winner_Report_{winner_name}.pdf"
     response.headers['Content-Type'] = 'application/pdf'
     return response
 

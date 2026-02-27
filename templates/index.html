@@ -63,6 +63,20 @@
         h2 { font-size: 1.8rem; margin: 0; color: #1e293b; font-weight: 700; }
         .sub-heading { font-size: 0.8rem; color: #64748b; margin-bottom: 25px; }
 
+        /* VOTER DASHBOARD STYLE */
+        .voter-dashboard {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .dash-label { font-size: 0.6rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .dash-id { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
+        .dash-hash { font-size: 0.55rem; font-family: monospace; color: #2563eb; word-break: break-all; margin-top: 4px; }
+
         /* BLOCKCHAIN TOKEN BOX */
         .token-box {
             background: #f0fdf4;
@@ -90,6 +104,18 @@
             margin: 0;
             word-break: break-all;
         }
+
+        /* MINING PROGRESS STYLE */
+        #mining-status {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 15px;
+        }
+        .mining-text { font-size: 0.75rem; font-weight: 700; color: #2563eb; margin-bottom: 8px; }
+        .progress-bg { width: 100%; height: 6px; background: #dbeafe; border-radius: 10px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: #2563eb; transition: width 1.4s ease-in-out; }
 
         .timer-box {
             background: #fff5f5;
@@ -195,6 +221,12 @@
     <h2>BCET E-Voting</h2>
     <div class="sub-heading">Blockchain-Secured Student Election</div>
 
+    <div class="voter-dashboard">
+        <div class="dash-label">Voter Session Dashboard</div>
+        <div class="dash-id">Voter ID: {{ session['user_id'] }}</div>
+        <div class="dash-hash">SESSION_HASH: {{ session.get('generated_token') }}</div>
+    </div>
+
     <div class="token-box">
         <div class="token-label">Blockchain Session ID:</div>
         <p class="token-value">{{ session.get('generated_token') }}</p>
@@ -223,7 +255,7 @@
     </div>
 
     {% if election_status == "OPEN" %}
-    <form action="/cast_vote" method="POST">
+    <form id="voteForm" action="/cast_vote" method="POST">
         <input type="hidden" name="student_id" value="{{ session['user_id'] }}">
 
         <div class="input-group">
@@ -235,8 +267,15 @@
             </select>
         </div>
 
-        <button type="submit" class="btn-confirm">Confirm Secure Vote</button>
+        <button type="submit" class="btn-confirm" id="confirmBtn">Confirm Secure Vote</button>
     </form>
+
+    <div id="mining-status">
+        <div class="mining-text">⛏️ BROADCASTING TO BLOCKCHAIN...</div>
+        <div class="progress-bg">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
     {% else %}
     <div class="locked-msg">
         🔒 The voting portal is currently locked.
@@ -274,6 +313,23 @@
 
     setInterval(updateCountdown, 1000);
     updateCountdown();
+
+    // Logic for the Mining Animation
+    const voteForm = document.getElementById('voteForm');
+    const miningStatus = document.getElementById('mining-status');
+    const progressBar = document.getElementById('progressBar');
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    voteForm.addEventListener('submit', function() {
+        // Hide form button and show mining bar
+        confirmBtn.style.display = 'none';
+        miningStatus.style.display = 'block';
+        
+        // Start progress bar animation
+        setTimeout(() => {
+            progressBar.style.width = '100%';
+        }, 50);
+    });
     {% endif %}
 </script>
 </body>
